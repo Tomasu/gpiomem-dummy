@@ -37,7 +37,7 @@ MODULE_VERSION("0.1");            ///< A version number to inform users
 #define RPI_GPIO_MEM_OFFSET 0x200000
 #define RPI_GPIO_MEM_START (RPI_IO_MEM_START + RPI_GPIO_MEM_OFFSET)
 
-#define GPIO_MEM_SIZE PAGE_SIZE
+#define GPIO_MEM_SIZE RPI_IO_MEM_SIZE
 
 static int    majorNumber;                  ///< Stores the device number -- determined automatically
 static int    numberOpens = 0;              ///< Counts the number of times the device is opened
@@ -48,8 +48,8 @@ static int *kmalloc_area = NULL;
 static int *kmalloc_ptr = NULL;
 
 // The prototype functions for the character driver -- must come before the struct definition
-static int     dev_open(struct inode *, struct file *);
-static int     dev_release(struct inode *, struct file *);
+static int dev_open(struct inode *, struct file *);
+static int dev_release(struct inode *, struct file *);
 static int dev_mmap(struct file *file, struct vm_area_struct *vma);
 
 
@@ -171,7 +171,7 @@ static int dev_mmap(struct file* file, struct vm_area_struct* vma)
 
    if (size > GPIO_MEM_SIZE)
    {
-      printk(KERN_ALERT "gpiomem-dummy: size too big\n");
+      printk(KERN_ALERT "gpiomem-dummy: size too big: %d > %d\n", size, GPIO_MEM_SIZE);
       return -ENXIO;
    }
 
