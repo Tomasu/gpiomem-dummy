@@ -30,14 +30,15 @@ MODULE_AUTHOR("Thomas Fjellstrom");    ///< The author -- visible when you use m
 MODULE_DESCRIPTION("A dummy raspberry-pi gpiomem driver");  ///< The description -- see modinfo
 MODULE_VERSION("0.1");            ///< A version number to inform users
 
+#define GPIO_MEM_SIZE PAGE_SIZE
+
 #define RPI_IO_MEM_START 0x3e000000
 #define RPI_IO_MEM_END 0x3effffff
 #define RPI_IO_MEM_SIZE (RPI_IO_MEM_END - RPI_IO_MEM_START)
 
 #define RPI_GPIO_MEM_OFFSET 0x200000
 #define RPI_GPIO_MEM_START (RPI_IO_MEM_START + RPI_GPIO_MEM_OFFSET)
-
-#define GPIO_MEM_SIZE RPI_IO_MEM_SIZE
+#define RPI_GPIO_MEM_END (RPI_GPIO_MEM_START + GPIO_MEM_SIZE)
 
 static int    majorNumber;                  ///< Stores the device number -- determined automatically
 static int    numberOpens = 0;              ///< Counts the number of times the device is opened
@@ -63,6 +64,18 @@ static struct file_operations fops =
    .open = dev_open,
    .release = dev_release,
    .mmap = dev_mmap,
+};
+
+/* memory handler functions */
+
+static void dev_mmap_open(struct vm_area_struct *vma);
+static void dev_mmap_close(struct vm_area_struct *vma);
+static int dev_mmap_fault(struct vm_fault *vmf);
+
+static struct vm_operations_struct dev_mem_ops = {
+   .open  = dev_mmap_open,  /* mmap-open */
+   .close = dev_mmap_close, /* mmap-close */
+   .fault = dev_mmap_fault, /* fault handler */
 };
 
 /** @brief The LKM initialization function
@@ -169,9 +182,9 @@ static int dev_mmap(struct file* file, struct vm_area_struct* vma)
       return -ENXIO;
    }
 
-   if (size > GPIO_MEM_SIZE)
+   if (size > RPI_IO_MEM_SIZE)
    {
-      printk(KERN_ALERT "gpiomem-dummy: size too big: %lu > %d\n", size, GPIO_MEM_SIZE);
+      printk(KERN_ALERT "gpiomem-dummy: size too big: %lu > %d\n", size, RPI_GPIO_MEM_START);
       return -ENXIO;
    }
 
@@ -187,11 +200,17 @@ static int dev_mmap(struct file* file, struct vm_area_struct* vma)
 
    vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 
+   vma->vm_ops = &dev_mem_ops;
+
+   dev_mmap_open(vma);
+
+   /*
    if(remap_pfn_range(vma, vma->vm_start, virt_to_phys(kmalloc_area), size, vma->vm_page_prot))
    {
       printk(KERN_ALERT "gpiomem-dummy: remap page range failed\n");
       return -ENXIO;
-   }
+}+ RPI_
+   */
 
    return 0;
 }
@@ -206,6 +225,40 @@ static int dev_release(struct inode *inodep, struct file *filep)
    printk(KERN_INFO "gpiomem-dummy: Device successfully closed\n");
    return 0;
 }
+
+void dev_mmap_open(struct vm_area_struct* vma)
+{
+}
+
+void dev_mmap_close(struct vm_area_struct* vma)
+{
+}
+
+int dev_mmap_fault(struct vm_fault* vmf)
+{
+   struct page *page = NULL;
+
+   if(vmf->address < vmf->vma->vm_start || vmf->address >= vmf->vma->vm_end)
+   {
+      printk(KERN_ALERT "gpiomem-dummy: invalid address\n");
+      return VM_FAULT_SIGBUS;
+   }
+
+   if(vmf->pgoff > 0)
+   {
+      printk(KERN_ERR "gpiomem-dummy: attempt to access outside the first page of io mem\n");
+      return VM_FAULT_SIGBUS;
+   }
+
+   page = virt_to_page(kmalloc_area);
+   get_page(page); // inc refcount to page
+
+   vmf->page = page;
+
+   return 0;
+}
+
+
 
 /** @brief A module must use the module_init() module_exit() macros from linux/init.h, which
  *  identify the initialization function at insertion time and the cleanup function (as
