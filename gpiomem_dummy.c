@@ -171,7 +171,7 @@ static int dev_mmap(struct file* file, struct vm_area_struct* vma)
 
    if (size > GPIO_MEM_SIZE)
    {
-      printk(KERN_ALERT "gpiomem-dummy: size too big: %d > %d\n", size, GPIO_MEM_SIZE);
+      printk(KERN_ALERT "gpiomem-dummy: size too big: %lu > %d\n", size, GPIO_MEM_SIZE);
       return -ENXIO;
    }
 
