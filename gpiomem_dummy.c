@@ -32,8 +32,8 @@ MODULE_VERSION("0.1");            ///< A version number to inform users
 
 #define GPIO_MEM_SIZE PAGE_SIZE
 
-#define RPI_IO_MEM_START 0x3e000000
-#define RPI_IO_MEM_END 0x3effffff
+#define RPI_IO_MEM_START 0x3e000000Lu
+#define RPI_IO_MEM_END 0x3effffffLu
 #define RPI_IO_MEM_SIZE (RPI_IO_MEM_END - RPI_IO_MEM_START)
 
 #define RPI_GPIO_MEM_OFFSET 0x200000
@@ -184,7 +184,7 @@ static int dev_mmap(struct file* file, struct vm_area_struct* vma)
 
    if (size > RPI_IO_MEM_SIZE)
    {
-      printk(KERN_ALERT "gpiomem-dummy: size too big: %lu > %d\n", size, RPI_GPIO_MEM_START);
+      printk(KERN_ALERT "gpiomem-dummy: size too big: %lu > %lu\n", size, RPI_IO_MEM_SIZE);
       return -ENXIO;
    }
 
