@@ -34,7 +34,7 @@ MODULE_VERSION("0.1");            ///< A version number to inform users
 
 #define RPI_IO_MEM_START 0x3e000000Lu
 #define RPI_IO_MEM_END 0x3effffffLu
-#define RPI_IO_MEM_SIZE (RPI_IO_MEM_END - RPI_IO_MEM_START)
+#define RPI_IO_MEM_SIZE (RPI_IO_MEM_END - RPI_IO_MEM_START + 1)
 
 #define RPI_GPIO_MEM_OFFSET 0x200000
 #define RPI_GPIO_MEM_START (RPI_IO_MEM_START + RPI_GPIO_MEM_OFFSET)
