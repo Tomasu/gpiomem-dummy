@@ -36,7 +36,7 @@ MODULE_VERSION("0.1");            ///< A version number to inform users
 #define RPI_IO_MEM_END 0x3effffffLu
 #define RPI_IO_MEM_SIZE (RPI_IO_MEM_END - RPI_IO_MEM_START + 1)
 
-#define RPI_GPIO_MEM_OFFSET 0x200000
+#define RPI_GPIO_MEM_OFFSET 0x200000Lu
 #define RPI_GPIO_MEM_START (RPI_IO_MEM_START + RPI_GPIO_MEM_OFFSET)
 #define RPI_GPIO_MEM_END (RPI_GPIO_MEM_START + GPIO_MEM_SIZE)
 #define RPI_GPIO_MEM_PGOFF (RPI_GPIO_MEM_OFFSET >> PAGE_SHIFT)
@@ -242,7 +242,7 @@ int dev_mmap_fault(struct vm_fault* vmf)
 
    if(vmf->pgoff != RPI_GPIO_MEM_PGOFF)
    {
-      printk(KERN_ERR "gpiomem-dummy: attempt to access outside the gpio registers\n");
+      printk(KERN_ERR "gpiomem-dummy: attempt to access outside the gpio registers: pgoff:%lu gpio-pgoff:%lu", vmf->pgoff, RPI_GPIO_MEM_PGOFF);
       return VM_FAULT_SIGBUS;
    }
 

@@ -16,6 +16,7 @@ fi
 echo load $MOD
 if sudo insmod $MOD; then
    echo loaded $MOD
+   sudo chmod a+rw /dev/gpiomem
 else
    echo failed to load $MOD
 fi
