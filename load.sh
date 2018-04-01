@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DIR=`dirname $0`
-MOD=gpiomem-dummy.ko
+MOD=gpiomem_dummy.ko
 
 pushd $DIR
 
