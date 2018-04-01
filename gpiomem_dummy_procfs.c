@@ -23,14 +23,14 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
    pfs->proc_dt_ent = proc_mkdir("device-tree", NULL);
    if(PTR_ERR(pfs->proc_dt_ent))
    {
-      printk(KERN_ERR LOG_PREFIX "failed to create device-tree dir\n");
+      printk(KERN_ALERT LOG_PREFIX "failed to create device-tree dir\n");
       return -ENOMEM;
    }
 
    pfs->proc_soc_ent = proc_mkdir("soc", pfs->proc_dt_ent);
    if(PTR_ERR(pfs->proc_soc_ent))
    {
-      printk(KERN_ERR LOG_PREFIX "failed to create device-tree/soc dir\n");
+      printk(KERN_ALERT LOG_PREFIX "failed to create device-tree/soc dir\n");
       proc_remove(pfs->proc_dt_ent);
       pfs->proc_dt_ent = NULL;
       return -ENOMEM;
@@ -45,7 +45,7 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
       proc_remove(pfs->proc_dt_ent);
       pfs->proc_dt_ent = NULL;
 
-      printk(KERN_ERR LOG_PREFIX "failed to create bcm device-tree procfs ranges entry\n");
+      printk(KERN_ALERT LOG_PREFIX "failed to create bcm device-tree procfs ranges entry\n");
       return -ENOMEM;
    }
 
