@@ -4,8 +4,9 @@
 #include <linux/proc_fs.h>
 
 struct gpiomem_dummy_procfs {
-   struct proc_dir_entry *proc_dent;
-   struct proc_dir_entry *proc_fent;
+   struct proc_dir_entry *proc_dt_ent;
+   struct proc_dir_entry *proc_soc_ent;
+   struct proc_dir_entry *proc_ranges_ent;
 };
 
 extern int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs);
