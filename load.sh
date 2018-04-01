@@ -7,10 +7,18 @@ pushd $DIR
 
 make
 
-if $(lsmod | grep -q $MOD); then
-   sudo rmmod $MOD
+lsmod | grep -q $MOD
+if [ $? -ne 0 ]; then
+   echo unload $MOD
+   sudo rmmod -v $MOD
 fi
 
-sudo insmod $MOD
+echo load $MOD
+if sudo insmod $MOD; then
+   echo loaded $MOD
+else
+   echo failed to load $MOD
+fi
+
 
 popd
