@@ -20,9 +20,19 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
 {
    memset(ranges_data, 0, sizeof(ranges_data));
 
-   pfs->proc_fent = proc_create(BCM283X_DT_RANGES_FILENAME, 0, NULL, &proc_fops);
+   pfs->proc_dent = proc_mkdir(BCM283X_DT_RANGES_DIR, NULL);
+   if(PTR_ERR(pfs->proc_dent))
+   {
+      printk(KERN_ERR LOG_PREFIX "failed to create ranges proc dir\n");
+      return -ENOMEM;
+   }
+
+   pfs->proc_fent = proc_create(BCM283X_DT_RANGES_FILENAME, 0, pfs->proc_dent, &proc_fops);
    if(PTR_ERR(pfs->proc_fent))
    {
+      proc_remove(pfs->proc_dent);
+      pfs->proc_dent = NULL;
+
       printk(KERN_ERR LOG_PREFIX "failed to create bcm device-tree procfs ranges entry\n");
       return -ENOMEM;
    }
@@ -46,6 +56,15 @@ void gpiomem_dummy_procfs_destroy(struct gpiomem_dummy_procfs *pfs)
 
    proc_remove(pfs->proc_fent);
    pfs->proc_fent = NULL;
+
+   if(PTR_ERR(pfs->proc_dent))
+   {
+      printk(KERN_ERR LOG_PREFIX "null procfs dir entry\n");
+      return;
+   }
+
+   proc_remove(pfs->proc_dent);
+   pfs->proc_dent = NULL;
 }
 
 ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)

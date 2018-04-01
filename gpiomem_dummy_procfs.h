@@ -4,6 +4,7 @@
 #include <linux/proc_fs.h>
 
 struct gpiomem_dummy_procfs {
+   struct proc_dir_entry *proc_dent;
    struct proc_dir_entry *proc_fent;
 };
 

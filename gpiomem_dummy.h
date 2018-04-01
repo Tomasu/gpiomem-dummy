@@ -9,7 +9,8 @@
 
 #define LOG_PREFIX "gpiomem-dummy: "
 
-#define BCM283X_DT_RANGES_FILENAME "device-tree/soc/ranges"
+#define BCM283X_DT_RANGES_DIR "device-tree/soc"
+#define BCM283X_DT_RANGES_FILENAME BCM283X_DT_RANGES_DIR "/ranges"
 
 #define BCM283X_PERIPH_BASE 0x7E000000Lu
 #define BCM283X_PERIPH_PGOFF (BCM283X_PERIPH_BASE >> PAGE_SHIFT)
