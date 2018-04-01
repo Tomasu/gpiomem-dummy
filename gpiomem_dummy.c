@@ -39,6 +39,7 @@ MODULE_VERSION("0.1");            ///< A version number to inform users
 #define RPI_GPIO_MEM_OFFSET 0x200000
 #define RPI_GPIO_MEM_START (RPI_IO_MEM_START + RPI_GPIO_MEM_OFFSET)
 #define RPI_GPIO_MEM_END (RPI_GPIO_MEM_START + GPIO_MEM_SIZE)
+#define RPI_GPIO_MEM_PGOFF (RPI_GPIO_MEM_OFFSET >> PAGE_SHIFT)
 
 static int    majorNumber;                  ///< Stores the device number -- determined automatically
 static int    numberOpens = 0;              ///< Counts the number of times the device is opened
@@ -238,15 +239,10 @@ int dev_mmap_fault(struct vm_fault* vmf)
 {
    struct page *page = NULL;
 
-   if(vmf->address < vmf->vma->vm_start || vmf->address >= vmf->vma->vm_end)
-   {
-      printk(KERN_ALERT "gpiomem-dummy: invalid address\n");
-      return VM_FAULT_SIGBUS;
-   }
 
-   if(vmf->pgoff > 0)
+   if(vmf->pgoff != RPI_GPIO_MEM_PGOFF)
    {
-      printk(KERN_ERR "gpiomem-dummy: attempt to access outside the first page of io mem\n");
+      printk(KERN_ERR "gpiomem-dummy: attempt to access outside the gpio registers\n");
       return VM_FAULT_SIGBUS;
    }
 
