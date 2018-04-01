@@ -7,7 +7,7 @@ pushd $DIR
 
 make
 
-if lsmod | grep -q $MOD; then
+if $(lsmod | grep -q $MOD); then
    sudo rmmod $MOD
 fi
 
