@@ -11,7 +11,7 @@ struct gpiomem_dummy_cdev
    struct device *dev;
 };
 
-int gpiomem_dummy_cdev_create(struct gpiomem_dummy_cdev *cdev);
-void gpiomem_dummy_cdev_destroy(struct gpiomem_dummy_cdev *cdev);
+extern int gpiomem_dummy_cdev_create(struct gpiomem_dummy_cdev *cdev);
+extern void gpiomem_dummy_cdev_destroy(struct gpiomem_dummy_cdev *cdev);
 
 #endif /* GPIOMEM_DUMMY_CDEV_H_GUARD */
