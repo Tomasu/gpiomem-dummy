@@ -136,18 +136,18 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
       return 0;
    }
 
-   printk(KERN_INFO LOG_PREFIX "proc req read %ld at %lld\n", count, *offp);
+   printk(KERN_INFO LOG_PREFIX "proc req read num=%ld at off=%lld\n", count, *offp);
 
    if(*offp + count > RANGES_SIZE)
       to_copy = RANGES_SIZE - *offp;
 
-   printk(KERN_INFO LOG_PREFIX "proc real read %zd at %lld\n", to_copy, *offp);
+   printk(KERN_INFO LOG_PREFIX "proc real read num=%zd at off=%lld\n", to_copy, *offp);
 
    num_ints = to_copy / 4;
    for(i = *offp / 4; i < num_ints; i++)
    {
       u32 d = ranges_data[i];
-      printk(KERN_DEBUG LOG_PREFIX "proc read %d of %d %x\n", i, num_ints, d);
+      printk(KERN_DEBUG LOG_PREFIX "proc read idx=%d numi=%d val=%x\n", i, num_ints, d);
    }
 
    ctu_ret = copy_to_user(buf, ranges_data + *offp, to_copy);
