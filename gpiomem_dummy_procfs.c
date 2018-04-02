@@ -9,13 +9,9 @@
 
 #define RANGES_SIZE 12
 
-#define RANGES_DATA(val) (u8)(val << 24), (u8)(val << 16), (u8)(val << 8), (u8)val
+#define RANGES_DATA(data, idx, val) data[idx*4] = (u8)(val << 24); data[idx*4+1] = (u8)(val << 16); data[idx*4+2] = (u8)(val << 8); data[idx*4+3] = (u8)val
 
-static u8 ranges_data[RANGES_SIZE] = {
-   RANGES_DATA(0),
-   RANGES_DATA(BCM283X_PERIPH_BASE),
-   RANGES_DATA(BCM283X_PERIPH_SIZE)
-};
+static u8 ranges_data[RANGES_SIZE];
 
 static ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp);
 static loff_t proc_llseek(struct file *filp, loff_t offset, int whence);
@@ -79,6 +75,10 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
    pfs->proc_dt_ent = dt_ent;
    pfs->proc_soc_ent = soc_ent;
    pfs->proc_ranges_ent = ranges_ent;
+
+   RANGES_DATA(ranges_data, 0, 0);
+   RANGES_DATA(ranges_data, 1, BCM283X_PERIPH_BASE);
+   RANGES_DATA(ranges_data, 2, BCM283X_PERIPH_SIZE);
 
    return 0;
 
