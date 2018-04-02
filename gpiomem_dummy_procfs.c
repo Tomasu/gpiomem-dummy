@@ -16,7 +16,7 @@ static struct file_operations proc_fops = {
    .read = proc_read // read from our device tree ranges file
 };
 
-static int ranges_exists()
+static int ranges_exists(void)
 {
    struct file *dtrf = filp_open("/proc/device-tree/oem/ranges", O_RDONLY, 0);
    if(dtrf) {
