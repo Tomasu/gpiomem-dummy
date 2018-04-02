@@ -135,6 +135,12 @@ err_cleanup:
  */
 static void __exit gpiomem_exit(void)
 {
+   if(!dummy.initialized)
+   {
+      printk(KERN_INFO LOG_PREFIX "Uninitialized, assume error...\n");
+      return;
+   }
+
    gpiomem_dummy_procfs_destroy(&dummy.proc);
    gpiomem_dummy_cdev_destroy(&dummy.cdev);
 

@@ -86,7 +86,7 @@ void gpiomem_dummy_cdev_destroy(struct gpiomem_dummy_cdev *cdev)
 {
    if(!cdev->major_number)
    {
-      printk(KERN_ERR LOG_PREFIX "cdev not initialized\n");
+      printk(KERN_INFO LOG_PREFIX "cdev not initialized\n");
       return;
    }
 

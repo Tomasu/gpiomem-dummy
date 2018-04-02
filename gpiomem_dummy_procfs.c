@@ -60,7 +60,7 @@ void gpiomem_dummy_procfs_destroy(struct gpiomem_dummy_procfs *pfs)
 {
    if(!pfs)
    {
-      printk(KERN_ERR LOG_PREFIX "null profs ptr\n");
+      printk(KERN_INFO LOG_PREFIX "procfs not initialized, skip.\n");
       return;
    }
 
