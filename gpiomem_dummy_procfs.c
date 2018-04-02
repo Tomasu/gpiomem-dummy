@@ -172,7 +172,8 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
    num_ints = to_copy / 4;
    for(i = 0; i < RANGES_SIZE/4; i++)
    {
-      u32 d = ((u32*)pfs->ranges_data)[i];
+      u32 *ptr = (u32*)pfs->ranges_data;
+      u32 d = ptr[i];
       printk(KERN_DEBUG LOG_PREFIX "proc (data) idx=%d val=%x (%d,%d,%d,%d)\n", i, d, pfs->ranges_data[i], pfs->ranges_data[i+1], pfs->ranges_data[i+2], pfs->ranges_data[i+3]);
    }
 
