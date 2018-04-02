@@ -151,7 +151,7 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
 
    if (offset & ~PAGE_MASK)
    {
-      printk(KERN_ALERT LOG_PREFIX "offset not aligned: %ld\n", offset);
+      printk(KERN_ERR LOG_PREFIX "offset not aligned: %ld\n", offset);
       return -ENXIO;
    }
 
@@ -163,21 +163,27 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
 
    if (size > BCM283X_PERIPH_SIZE)
    {
-      printk(KERN_ALERT LOG_PREFIX "size too big: %lu > %lu\n", size, BCM283X_PERIPH_SIZE);
+      printk(KERN_ERR LOG_PREFIX "size too big: %lu > %lu\n", size, BCM283X_PERIPH_SIZE);
       return -ENXIO;
    }
 
    if ((vma->vm_flags & VM_WRITE) && !(vma->vm_flags & VM_SHARED))
    {
-      printk(KERN_ALERT LOG_PREFIX "writable mappings must be shared, rejecting\n");
+      printk(KERN_ERR LOG_PREFIX "writable mappings must be shared, rejecting\n");
       return(-EINVAL);
+   }
+
+   if (!phys_mem_access_prot_allowed(file, vma->vm_pgoff, size, &vma->vm_page_prot))
+   {
+      printk(KERN_ERR LOG_PREFIX "access prot not allowed\n");
+      return -EINVAL;
    }
 
    // TODO: check if this is required
    // locks vma in ram, wont be swapped out
    vma->vm_flags |= VM_LOCKED;
 
-   vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+   vma->vm_page_prot = phys_mem_access_prot(file, vma->vm_pgoff, size, vma->vm_page_prot);
 
    vma->vm_ops = &gpiomem_dummy_mmap_vmops;
 
