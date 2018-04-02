@@ -140,9 +140,6 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
    else
       to_copy = my_max(count, RANGES_SIZE);
 
-   bytes_left = RANGES_SIZE - *offp;
-   to_copy = min((ssize_t)count, bytes_left);
-
    printk(KERN_INFO LOG_PREFIX "proc real read %zd at %lld\n", to_copy, *offp);
 
    for(i = *offp / 4; i <= to_copy/4; i++)
