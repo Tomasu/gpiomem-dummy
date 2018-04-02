@@ -20,6 +20,18 @@ static struct file_operations proc_fops = {
    .llseek = proc_llseek // seek!
 };
 
+#define my_min(a, b) ({ \
+typeof ((a)) a_copy_ = (a); \
+typeof ((b)) b_copy_ = (b); \
+a_copy_ > b_copy_ ? b_copy_ : a_copy_; \
+})
+
+#define my_max(a, b) ({ \
+typeof ((a)) a_copy_ = (a); \
+typeof ((b)) b_copy_ = (b); \
+a_copy_ < b_copy_ ? b_copy_ : a_copy_; \
+})
+
 int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
 {
    int error_ret = 0;
@@ -123,12 +135,17 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 
    printk(KERN_INFO LOG_PREFIX "proc req read %ld at %lld\n", count, *offp);
 
+   if(*offp >= RANGES_SIZE)
+      to_copy = RANGES_SIZE - *offp;
+   else
+      to_copy = my_max(count, RANGES_SIZE);
+
    bytes_left = RANGES_SIZE - *offp;
    to_copy = min((ssize_t)count, bytes_left);
 
    printk(KERN_INFO LOG_PREFIX "proc real read %zd at %lld\n", to_copy, *offp);
 
-   for(i = *offp / 4; i < to_copy/4; i++)
+   for(i = *offp / 4; i <= to_copy/4; i++)
    {
       printk(KERN_DEBUG LOG_PREFIX "proc read %d %x\n", i, ranges_data[i]);
    }
@@ -145,18 +162,6 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 
    return to_copy;
 }
-
-#define my_min(a, b) ({ \
-   typeof ((a)) a_copy_ = (a); \
-   typeof ((b)) b_copy_ = (b); \
-   a_copy_ > b_copy_ ? b_copy_ : a_copy_; \
-})
-
-#define my_max(a, b) ({ \
-   typeof ((a)) a_copy_ = (a); \
-   typeof ((b)) b_copy_ = (b); \
-   a_copy_ < b_copy_ ? b_copy_ : a_copy_; \
-})
 
 const char *whence_str[] = {
    "SEEK_SET", "SEEK_CUR", "SEEK_END", NULL
