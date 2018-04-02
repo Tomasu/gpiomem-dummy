@@ -75,6 +75,8 @@ dev_cleanup:
       cdev->clss = NULL;
    }
 
+   cdev->dev = NULL;
+
    unregister_chrdev(cdev->major_number, DEVICE_NAME);
 
    cdev->major_number = 0;
@@ -113,7 +115,7 @@ void gpiomem_dummy_cdev_destroy(struct gpiomem_dummy_cdev *cdev)
 static int dev_open(struct inode *inodep, struct file *filep)
 {
    struct gpiomem_dummy *dummy = dummy_get();
-   if(PTR_ERR(dummy))
+   if(dummy)
    {
       printk(KERN_ERR LOG_PREFIX "driver not initialized?!\n");
       return -ENODEV;
