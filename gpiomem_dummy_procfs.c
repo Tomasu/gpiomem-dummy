@@ -9,7 +9,7 @@
 
 #define RANGES_DATA_NUM 3
 #define RANGES_SIZE (RANGES_DATA_NUM * sizeof(*ranges_data))
-static u32 ranges_data[RANGES_DATA_NUM] = { 0, BCM283X_PERIPH_BASE, BCM283X_PERIPH_SIZE };
+static u32 ranges_data[RANGES_DATA_NUM];
 
 static ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp);
 static loff_t proc_llseek(struct file *filp, loff_t offset, int whence);
@@ -61,6 +61,10 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
    pfs->proc_dt_ent = dt_ent;
    pfs->proc_soc_ent = soc_ent;
    pfs->proc_ranges_ent = ranges_ent;
+
+   ranges_data[0] = 0;
+   ranges_data[1] = BCM283X_PERIPH_BASE;
+   ranges_data[2] = BCM283X_PERIPH_SIZE;
 
    return 0;
 
