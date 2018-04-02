@@ -39,6 +39,12 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
    struct proc_dir_entry *soc_ent = NULL;
    struct proc_dir_entry *ranges_ent = NULL;
 
+   if(!pfs)
+   {
+      printk(KERN_ALERT LOG_PREFIX "null pfs?!\n");
+      return -EFAULT;
+   }
+
    memset(pfs, 0, sizeof(*pfs));
 
    pfs->mark_me = 0xDEADBEEF;
