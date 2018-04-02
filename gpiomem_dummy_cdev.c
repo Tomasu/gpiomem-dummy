@@ -25,6 +25,7 @@ static struct file_operations cdev_fops =
    .open = dev_open,
    .release = dev_release,
    .mmap = dev_mmap,
+   .llseek = no_llseek
 };
 
 int gpiomem_dummy_cdev_init(struct gpiomem_dummy_cdev *cdev)
@@ -137,7 +138,8 @@ static int dev_open(struct inode *inodep, struct file *filep)
    dummy->cdev.times_opened++;
 
    printk(KERN_INFO LOG_PREFIX "Device has been opened %d time(s)\n", dummy->cdev.times_opened);
-   return 0;
+
+   return nonseekable_open(inodep, filep);
 }
 
 static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_struct* vma)
@@ -178,6 +180,9 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
    vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 
    vma->vm_ops = &gpiomem_dummy_mmap_vmops;
+
+
+   printk(KERN_INFO LOG_PREFIX "mmap success!\n");
 
    // dev_mmap_open(vma); <-- is it really necessary to call the mmap open function here if we have one set up?? I'd think it's already been called....
 

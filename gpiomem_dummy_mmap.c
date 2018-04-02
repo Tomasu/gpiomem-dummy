@@ -43,7 +43,5 @@ static int mmap_fault(struct vm_fault* vmf)
 }
 
 struct vm_operations_struct gpiomem_dummy_mmap_vmops = {
-   .open  = mmap_open,  /* mmap-open */
-   .close = mmap_close, /* mmap-close */
    .fault = mmap_fault, /* fault handler */
 };
