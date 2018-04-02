@@ -6,6 +6,7 @@
 #define RANGES_SIZE 12
 
 struct gpiomem_dummy_procfs {
+   u32 mark_me;
    struct proc_dir_entry *proc_dt_ent;
    struct proc_dir_entry *proc_soc_ent;
    struct proc_dir_entry *proc_ranges_ent;

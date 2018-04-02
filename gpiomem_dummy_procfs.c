@@ -41,6 +41,8 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
 
    memset(pfs, 0, sizeof(*pfs));
 
+   pfs->mark_me = 0xDEADBEEF;
+
    dt_ent = proc_mkdir("device-tree", NULL);
    if(IS_ERR(dt_ent))
    {
@@ -142,6 +144,11 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
       return -ENOENT;
    }
 
+   if(pfs->mark_me != 0xDEADBEEF)
+   {
+      printk(KERN_INFO LOG_PREFIX "pde data seems to be wrong\n");
+      return -ENOENT;
+   }
 
    printk(KERN_INFO LOG_PREFIX "proc req read num=%ld at off=%lld\n", count, *offp);
 
