@@ -123,7 +123,6 @@ void gpiomem_dummy_procfs_destroy(struct gpiomem_dummy_procfs *pfs)
 
 ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 {
-   ssize_t bytes_left = 0;
    ssize_t to_copy = 0;
    ssize_t ctu_ret = 0;
    int i = 0;
@@ -136,7 +135,7 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 
    printk(KERN_INFO LOG_PREFIX "proc req read %ld at %lld\n", count, *offp);
 
-   if(*offp + count >= RANGES_SIZE)
+   if(*offp + count > RANGES_SIZE)
       to_copy = RANGES_SIZE - *offp;
    else
       to_copy = my_max(count, RANGES_SIZE);
