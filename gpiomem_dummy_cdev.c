@@ -167,7 +167,7 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
 
    if ((vma->vm_flags & VM_WRITE) && !(vma->vm_flags & VM_SHARED))
    {
-      printk(KERN_ALERT LOG_PREFIX "writeable mappings must be shared, rejecting\n");
+      printk(KERN_ALERT LOG_PREFIX "writable mappings must be shared, rejecting\n");
       return(-EINVAL);
    }
 

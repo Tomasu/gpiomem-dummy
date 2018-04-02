@@ -12,10 +12,12 @@
 static u32 ranges_data[RANGES_DATA_NUM] = { 0, BCM283X_PERIPH_BASE, BCM283X_PERIPH_SIZE };
 
 static ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp);
+static loff_t proc_llseek(struct file *filp, loff_t offset, int whence);
 
 static struct file_operations proc_fops = {
    .owner = THIS_MODULE, // WE OWN YOU
-   .read = proc_read // read from our device tree ranges file
+   .read = proc_read, // read from our device tree ranges file
+   .llseek = proc_llseek // seek!
 };
 
 int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
@@ -132,4 +134,46 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
    *offp += to_copy;
 
    return to_copy;
+}
+
+#define my_min(a, b) ({ \
+   typeof ((a)) a_copy_ = (a); \
+   typeof ((b)) b_copy_ = (b); \
+   a_copy_ > b_copy_ ? b_copy_ : a_copy_; \
+})
+
+#define my_max(a, b) ({ \
+   typeof ((a)) a_copy_ = (a); \
+   typeof ((b)) b_copy_ = (b); \
+   a_copy_ < b_copy_ ? b_copy_ : a_copy_; \
+})
+
+loff_t proc_llseek(struct file *filp, loff_t offset, int whence)
+{
+   loff_t new_pos = 0;
+
+   switch(whence)
+   {
+      case SEEK_SET:
+         new_pos = offset;
+         break;
+
+      case SEEK_CUR:
+         new_pos = filp->f_pos + offset;
+         break;
+
+      case SEEK_END:
+         new_pos = RANGES_SIZE - 1;
+         break;
+
+      default:
+         printk(KERN_ERR LOG_PREFIX "invalid seek whence >:(\n");
+         new_pos = filp->f_pos;
+         break;
+   }
+
+   new_pos = my_max(0, my_min(new_pos, RANGES_SIZE));
+   filp->f_pos = new_pos;
+
+   return new_pos;
 }
