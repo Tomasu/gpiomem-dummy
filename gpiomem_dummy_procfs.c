@@ -20,9 +20,12 @@ static struct file_operations proc_fops = {
 
 int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
 {
+   int error_ret = 0;
    struct proc_dir_entry *dt_ent = NULL;
    struct proc_dir_entry *soc_ent = NULL;
    struct proc_dir_entry *ranges_ent = NULL;
+
+   memset(pfs, 0, sizeof(*pfs));
 
    dt_ent = proc_mkdir("device-tree", NULL);
    if(IS_ERR(dt_ent))
@@ -35,18 +38,22 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
    if(IS_ERR(soc_ent))
    {
       printk(KERN_ALERT LOG_PREFIX "failed to create device-tree/soc dir\n");
+
       proc_remove(dt_ent);
-      return PTR_ERR(soc_ent);
+      error_ret = PTR_ERR(soc_ent);
+      goto error_cleanup;
    }
 
    ranges_ent = proc_create("ranges", 0, soc_ent, &proc_fops);
    if(IS_ERR(ranges_ent))
    {
+      printk(KERN_ALERT LOG_PREFIX "failed to create bcm device-tree procfs ranges entry\n");
+
       proc_remove(soc_ent);
       proc_remove(dt_ent);
 
-      printk(KERN_ALERT LOG_PREFIX "failed to create bcm device-tree procfs ranges entry\n");
-      return PTR_ERR(ranges_ent);
+      error_ret = PTR_ERR(ranges_ent);
+      goto error_cleanup;
    }
 
    pfs->proc_dt_ent = dt_ent;
@@ -54,42 +61,46 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
    pfs->proc_ranges_ent = ranges_ent;
 
    return 0;
+
+error_cleanup:
+   if(!IS_ERR(soc_ent))
+   {
+      proc_remove(soc_ent);
+   }
+
+   if(!IS_ERR(dt_ent))
+   {
+      proc_remove(dt_ent);
+   }
+
+   return error_ret;
 }
 
 void gpiomem_dummy_procfs_destroy(struct gpiomem_dummy_procfs *pfs)
 {
    if(!pfs)
    {
-      printk(KERN_INFO LOG_PREFIX "procfs not initialized, skip.\n");
+      printk(KERN_ERR LOG_PREFIX "Null pfs?!\n");
       return;
    }
 
-   if(!pfs->proc_ranges_ent)
+   if(pfs->proc_ranges_ent)
    {
-      printk(KERN_ERR LOG_PREFIX "null procfs ranges entry\n");
-      return;
+      proc_remove(pfs->proc_ranges_ent);
+      pfs->proc_ranges_ent = NULL;
    }
 
-   proc_remove(pfs->proc_ranges_ent);
-   pfs->proc_ranges_ent = NULL;
-
-   if(!pfs->proc_soc_ent)
+   if(pfs->proc_soc_ent)
    {
-      printk(KERN_ERR LOG_PREFIX "null procfs soc entry\n");
-      return;
+      proc_remove(pfs->proc_soc_ent);
+      pfs->proc_soc_ent = NULL;
    }
 
-   proc_remove(pfs->proc_soc_ent);
-   pfs->proc_soc_ent = NULL;
-
-   if(!pfs->proc_dt_ent)
+   if(pfs->proc_dt_ent)
    {
-      printk(KERN_ERR LOG_PREFIX "null procfs device-tree entry\n");
-      return;
+      proc_remove(pfs->proc_dt_ent);
+      pfs->proc_dt_ent = NULL;
    }
-
-   proc_remove(pfs->proc_dt_ent);
-   pfs->proc_dt_ent = NULL;
 }
 
 ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)

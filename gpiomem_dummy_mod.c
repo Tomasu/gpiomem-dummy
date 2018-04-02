@@ -38,7 +38,9 @@ MODULE_VERSION("0.1");            ///< A version number to inform users
 
 static struct gpiomem_dummy dummy =
 {
-   .initialized = 0
+   .initialized = 0,
+   .kmalloc_ptr = NULL,
+   .kmalloc_area = NULL
 };
 
 struct gpiomem_dummy *dummy_get()
@@ -110,10 +112,8 @@ static int __init gpiomem_init(void)
    return 0;
 
 err_cleanup:
-   if(dummy.cdev.major_number)
-   {
-      gpiomem_dummy_cdev_destroy(&dummy.cdev);
-   }
+
+   gpiomem_dummy_cdev_destroy(&dummy.cdev);
 
    if(dummy.kmalloc_ptr)
    {
@@ -135,18 +135,15 @@ err_cleanup:
  */
 static void __exit gpiomem_exit(void)
 {
-   if(!dummy.initialized)
-   {
-      printk(KERN_INFO LOG_PREFIX "Uninitialized, assume error...\n");
-      return;
-   }
-
    gpiomem_dummy_procfs_destroy(&dummy.proc);
    gpiomem_dummy_cdev_destroy(&dummy.cdev);
 
-   kfree(dummy.kmalloc_ptr); // free our memory
-   dummy.kmalloc_ptr = NULL;
-   dummy.kmalloc_area = NULL;
+   if(dummy.kmalloc_ptr)
+   {
+      kfree(dummy.kmalloc_ptr); // free our memory
+      dummy.kmalloc_ptr = NULL;
+      dummy.kmalloc_area = NULL;
+   }
 
    dummy.initialized = 0;
 

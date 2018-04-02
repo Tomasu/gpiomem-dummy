@@ -32,6 +32,14 @@ int gpiomem_dummy_cdev_init(struct gpiomem_dummy_cdev *cdev)
    int error_ret = -1;
    int chrdev_major = 0;
 
+   if(!cdev)
+   {
+      printk(KERN_ERR LOG_PREFIX "Null cdev?!\n");
+      return -ENODEV;
+   }
+
+   memset(cdev, 0, sizeof(*cdev));
+
    // Try to dynamically allocate a major number for the device -- more difficult but worth it
    chrdev_major = register_chrdev(0, DEVICE_NAME, &cdev_fops);
    if (chrdev_major < 0){
@@ -56,7 +64,9 @@ int gpiomem_dummy_cdev_init(struct gpiomem_dummy_cdev *cdev)
    printk(KERN_INFO LOG_PREFIX "device class registered correctly\n");
 
    // Register the device driver
-   cdev->dev = device_create(cdev->clss, NULL, MKDEV(cdev->major_number, 0), NULL, DEVICE_NAME);
+   cdev->dev_id = MKDEV(cdev->major_number, 0);
+
+   cdev->dev = device_create(cdev->clss, NULL, cdev->dev_id, NULL, DEVICE_NAME);
    if (IS_ERR(cdev->dev))
    {
       printk(KERN_ALERT LOG_PREFIX "Failed to create the device\n");
@@ -69,7 +79,7 @@ int gpiomem_dummy_cdev_init(struct gpiomem_dummy_cdev *cdev)
    return 0;
 
 dev_cleanup:
-   if(cdev->clss)
+   if(!IS_ERR(cdev->clss))
    {
       class_destroy(cdev->clss);
       cdev->clss = NULL;
@@ -77,19 +87,22 @@ dev_cleanup:
 
    cdev->dev = NULL;
 
-   unregister_chrdev(cdev->major_number, DEVICE_NAME);
-
-   cdev->major_number = 0;
+   if(cdev->major_number)
+   {
+      unregister_chrdev(cdev->major_number, DEVICE_NAME);
+      cdev->major_number = 0;
+   }
 
    return error_ret;
 }
 
 void gpiomem_dummy_cdev_destroy(struct gpiomem_dummy_cdev *cdev)
 {
-   if(!cdev->major_number)
+   if(cdev->dev)
    {
-      printk(KERN_INFO LOG_PREFIX "cdev not initialized\n");
-      return;
+      device_destroy(cdev->clss, cdev->dev_id);
+      cdev->dev_id = 0;
+      cdev->dev = NULL;
    }
 
    if(cdev->clss)
