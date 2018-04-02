@@ -5,6 +5,7 @@ MOD=gpiomem_dummy.ko
 
 pushd $DIR
 
+git pull
 make
 
 lsmod | grep -q $MOD
