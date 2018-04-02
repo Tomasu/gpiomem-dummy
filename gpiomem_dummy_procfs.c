@@ -154,33 +154,5 @@ const char *whence_str[] = {
 
 loff_t proc_llseek(struct file *filp, loff_t offset, int whence)
 {
-   loff_t new_pos = 0;
-
-   switch(whence)
-   {
-      case SEEK_SET:
-         new_pos = offset;
-         break;
-
-      case SEEK_CUR:
-         new_pos = filp->f_pos + offset;
-         break;
-
-      case SEEK_END:
-         new_pos = RANGES_SIZE - 1;
-         break;
-
-      default:
-         printk(KERN_ERR LOG_PREFIX "invalid seek whence >:(\n");
-         new_pos = filp->f_pos;
-         break;
-   }
-
-   printk(KERN_INFO LOG_PREFIX "llseek: orig off=%lld whence=%s\n", offset, whence_str[whence]);
-   new_pos = my_max(0, my_min(new_pos, RANGES_SIZE));
-   printk(KERN_INFO LOG_PREFIX "llseek: real off=%lld whence=%s\n", new_pos, whence_str[whence]);
-
-   filp->f_pos = new_pos;
-
-   return new_pos;
+   return fixed_size_llseek(filp, offset, whence, RANGES_SIZE);
 }
