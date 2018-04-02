@@ -22,7 +22,7 @@ static int mmap_fault(struct vm_fault* vmf)
    struct page *page = NULL;
 
    ptr = dummy_get_mem_ptr();
-   if(PTR_ERR(ptr))
+   if(IS_ERR(ptr))
    {
       printk(KERN_ERR LOG_PREFIX "unable to get mem pointer\n");
       return VM_FAULT_SIGBUS;

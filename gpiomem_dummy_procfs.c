@@ -14,56 +14,57 @@ static u32 ranges_data[RANGES_DATA_NUM] = { 0, BCM283X_PERIPH_BASE, BCM283X_PERI
 static ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp);
 
 static struct file_operations proc_fops = {
+   .owner = THIS_MODULE, // WE OWN YOU
    .read = proc_read // read from our device tree ranges file
 };
 
 int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
 {
-   memset(ranges_data, 0, sizeof(ranges_data));
+   struct proc_dir_entry *dt_ent = NULL;
+   struct proc_dir_entry *soc_ent = NULL;
+   struct proc_dir_entry *ranges_ent = NULL;
 
-   pfs->proc_dt_ent = proc_mkdir("device-tree", NULL);
-   if(!pfs->proc_dt_ent)
+   dt_ent = proc_mkdir("device-tree", NULL);
+   if(IS_ERR(dt_ent))
    {
       printk(KERN_ALERT LOG_PREFIX "failed to create device-tree dir\n");
-      return -ENOMEM;
+      return PTR_ERR(dt_ent);
    }
 
-   pfs->proc_soc_ent = proc_mkdir("soc", pfs->proc_dt_ent);
-   if(!pfs->proc_soc_ent)
+   soc_ent = proc_mkdir("soc", dt_ent);
+   if(IS_ERR(soc_ent))
    {
       printk(KERN_ALERT LOG_PREFIX "failed to create device-tree/soc dir\n");
-      proc_remove(pfs->proc_dt_ent);
-      pfs->proc_dt_ent = NULL;
-      return -ENOMEM;
+      proc_remove(dt_ent);
+      return PTR_ERR(soc_ent);
    }
 
-   pfs->proc_ranges_ent = proc_create("ranges", 0, pfs->proc_soc_ent, &proc_fops);
-   if(!pfs->proc_ranges_ent)
+   ranges_ent = proc_create("ranges", 0, soc_ent, &proc_fops);
+   if(IS_ERR(ranges_ent))
    {
-      proc_remove(pfs->proc_soc_ent);
-      pfs->proc_soc_ent = NULL;
-
-      proc_remove(pfs->proc_dt_ent);
-      pfs->proc_dt_ent = NULL;
+      proc_remove(soc_ent);
+      proc_remove(dt_ent);
 
       printk(KERN_ALERT LOG_PREFIX "failed to create bcm device-tree procfs ranges entry\n");
-      return -ENOMEM;
+      return PTR_ERR(ranges_ent);
    }
 
-
+   pfs->proc_dt_ent = dt_ent;
+   pfs->proc_soc_ent = soc_ent;
+   pfs->proc_ranges_ent = ranges_ent;
 
    return 0;
 }
 
 void gpiomem_dummy_procfs_destroy(struct gpiomem_dummy_procfs *pfs)
 {
-   if(PTR_ERR(pfs))
+   if(!pfs)
    {
       printk(KERN_ERR LOG_PREFIX "null profs ptr\n");
       return;
    }
 
-   if(PTR_ERR(pfs->proc_ranges_ent))
+   if(!pfs->proc_ranges_ent)
    {
       printk(KERN_ERR LOG_PREFIX "null procfs ranges entry\n");
       return;
@@ -72,7 +73,7 @@ void gpiomem_dummy_procfs_destroy(struct gpiomem_dummy_procfs *pfs)
    proc_remove(pfs->proc_ranges_ent);
    pfs->proc_ranges_ent = NULL;
 
-   if(PTR_ERR(pfs->proc_soc_ent))
+   if(!pfs->proc_soc_ent)
    {
       printk(KERN_ERR LOG_PREFIX "null procfs soc entry\n");
       return;
@@ -81,7 +82,7 @@ void gpiomem_dummy_procfs_destroy(struct gpiomem_dummy_procfs *pfs)
    proc_remove(pfs->proc_soc_ent);
    pfs->proc_soc_ent = NULL;
 
-   if(PTR_ERR(pfs->proc_dt_ent))
+   if(!pfs->proc_dt_ent)
    {
       printk(KERN_ERR LOG_PREFIX "null procfs device-tree entry\n");
       return;
