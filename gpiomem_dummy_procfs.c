@@ -9,7 +9,13 @@
 
 #define RANGES_SIZE 12
 
-#define RANGES_DATA(data, idx, val) data[idx*4] = (u8)(val << 24); data[idx*4+1] = (u8)(val << 16); data[idx*4+2] = (u8)(val << 8); data[idx*4+3] = (u8)val
+static void range_set(u8 *data, int idx, u32 val)
+{
+   data[idx*4] = (u8)(val << 24);
+   data[idx*4+1] = (u8)(val << 16);
+   data[idx*4+2] = (u8)(val << 8);
+   data[idx*4+3] = (u8)val;
+}
 
 static ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp);
 static loff_t proc_llseek(struct file *filp, loff_t offset, int whence);
@@ -82,9 +88,9 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
    pfs->proc_soc_ent = soc_ent;
    pfs->proc_ranges_ent = ranges_ent;
 
-   RANGES_DATA(pfs->ranges_data, 0, 0);
-   RANGES_DATA(pfs->ranges_data, 1, BCM283X_PERIPH_BASE);
-   RANGES_DATA(pfs->ranges_data, 2, BCM283X_PERIPH_SIZE);
+   range_set(pfs->ranges_data, 0, 0);
+   range_set(pfs->ranges_data, 1, BCM283X_PERIPH_BASE);
+   range_set(pfs->ranges_data, 2, BCM283X_PERIPH_SIZE);
 
    return 0;
 
