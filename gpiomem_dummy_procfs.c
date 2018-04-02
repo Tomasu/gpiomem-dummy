@@ -146,7 +146,7 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
    num_ints = to_copy / 4;
    for(i = *offp / 4; i < num_ints; i++)
    {
-      u32 d = ranges_data[i];
+      u32 d = ranges_data[i*4];
       printk(KERN_DEBUG LOG_PREFIX "proc read idx=%d numi=%d val=%x\n", i, num_ints, d);
    }
 
