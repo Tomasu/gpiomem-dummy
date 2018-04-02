@@ -127,9 +127,9 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 
    printk(KERN_INFO LOG_PREFIX "proc real read %zd at %lld\n", to_copy, *offp);
 
-   printk(KERN_DEBUG LOG_PREFIX "proc read %d\n", ranges_data[*offp]);
+   printk(KERN_DEBUG LOG_PREFIX "proc read %d\n", ranges_data[*offp / 4]);
 
-   ctu_ret = copy_to_user(buf, ranges_data + *offp, to_copy);
+   ctu_ret = copy_to_user(buf, ((char*)ranges_data) + *offp, to_copy);
    if(ctu_ret != 0)
    {
       printk(KERN_INFO LOG_PREFIX "copy_to_user didn't copy everything?? %zd of %zd\n", to_copy-ctu_ret, to_copy);
