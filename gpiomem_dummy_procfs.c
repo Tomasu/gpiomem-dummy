@@ -16,19 +16,32 @@ static struct file_operations proc_fops = {
    .read = proc_read // read from our device tree ranges file
 };
 
+static int ranges_exists()
+{
+   struct file *dtrf = filp_open("/proc/device-tree/oem/ranges", O_RDONLY, 0);
+   if(dtrf) {
+      printk(KERN_ERR LOG_PREFIX "ranges file already exists, we WILL NOT override it\n");
+      return -EEXIST;
+   }
+
+   filp_close(dtrf, NULL);
+
+   return 0;
+}
+
 int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
 {
    memset(ranges_data, 0, sizeof(ranges_data));
 
    pfs->proc_dt_ent = proc_mkdir("device-tree", NULL);
-   if(PTR_ERR(pfs->proc_dt_ent))
+   if(!pfs->proc_dt_ent)
    {
       printk(KERN_ALERT LOG_PREFIX "failed to create device-tree dir\n");
       return -ENOMEM;
    }
 
    pfs->proc_soc_ent = proc_mkdir("soc", pfs->proc_dt_ent);
-   if(PTR_ERR(pfs->proc_soc_ent))
+   if(!pfs->proc_soc_ent)
    {
       printk(KERN_ALERT LOG_PREFIX "failed to create device-tree/soc dir\n");
       proc_remove(pfs->proc_dt_ent);
@@ -37,7 +50,7 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
    }
 
    pfs->proc_ranges_ent = proc_create("ranges", 0, pfs->proc_soc_ent, &proc_fops);
-   if(PTR_ERR(pfs->proc_ranges_ent))
+   if(!pfs->proc_ranges_ent)
    {
       proc_remove(pfs->proc_soc_ent);
       pfs->proc_soc_ent = NULL;
