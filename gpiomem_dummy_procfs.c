@@ -130,12 +130,13 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 
    if(*offp >= RANGES_SIZE)
    {
+      printk(KERN_INFO LOG_PREFIX "proc req read %lld >= RANGES_SIZE %lu\n", *offp, RANGES_SIZE);
       return 0;
    }
 
    printk(KERN_INFO LOG_PREFIX "proc req read %ld at %lld\n", count, *offp);
 
-   if(*offp >= RANGES_SIZE)
+   if(*offp + count >= RANGES_SIZE)
       to_copy = RANGES_SIZE - *offp;
    else
       to_copy = my_max(count, RANGES_SIZE);
