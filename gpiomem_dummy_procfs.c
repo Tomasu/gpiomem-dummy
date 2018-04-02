@@ -114,6 +114,7 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
    ssize_t bytes_left = 0;
    ssize_t to_copy = 0;
    ssize_t ctu_ret = 0;
+   int i = 0;
 
    if(*offp >= RANGES_SIZE)
    {
@@ -127,7 +128,10 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 
    printk(KERN_INFO LOG_PREFIX "proc real read %zd at %lld\n", to_copy, *offp);
 
-   printk(KERN_DEBUG LOG_PREFIX "proc read %d\n", ranges_data[*offp / 4]);
+   for(i = *offp / 4; i < to_copy; i++)
+   {
+      printk(KERN_DEBUG LOG_PREFIX "proc read %d %x\n", i, ranges_data[i]);
+   }
 
    ctu_ret = copy_to_user(buf, ((char*)ranges_data) + *offp, to_copy);
    if(ctu_ret != 0)
