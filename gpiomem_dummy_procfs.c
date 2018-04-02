@@ -128,7 +128,7 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 
    printk(KERN_INFO LOG_PREFIX "proc real read %zd at %lld\n", to_copy, *offp);
 
-   for(i = *offp / 4; i < to_copy; i++)
+   for(i = *offp / 4; i < to_copy/4; i++)
    {
       printk(KERN_DEBUG LOG_PREFIX "proc read %d %x\n", i, ranges_data[i]);
    }
