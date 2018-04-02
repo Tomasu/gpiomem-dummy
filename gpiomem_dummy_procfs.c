@@ -7,9 +7,15 @@
 
 #include "gpiomem_dummy.h"
 
-#define RANGES_DATA_NUM 3
-#define RANGES_SIZE (RANGES_DATA_NUM * sizeof(*ranges_data))
-static u32 ranges_data[RANGES_DATA_NUM];
+#define RANGES_SIZE 12
+
+#define RANGES_DATA(val) (u8)(val << 24), (u8)(val << 16), (u8)(val << 8), (u8)val
+
+static u8 ranges_data[RANGES_SIZE] = {
+   RANGES_DATA(0),
+   RANGES_DATA(BCM283X_PERIPH_BASE),
+   RANGES_DATA(BCM283X_PERIPH_SIZE)
+};
 
 static ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp);
 static loff_t proc_llseek(struct file *filp, loff_t offset, int whence);
@@ -74,10 +80,6 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
    pfs->proc_soc_ent = soc_ent;
    pfs->proc_ranges_ent = ranges_ent;
 
-   ranges_data[0] = 0;
-   ranges_data[1] = BCM283X_PERIPH_BASE;
-   ranges_data[2] = BCM283X_PERIPH_SIZE;
-
    return 0;
 
 error_cleanup:
@@ -129,7 +131,7 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 
    if(*offp >= RANGES_SIZE)
    {
-      printk(KERN_INFO LOG_PREFIX "proc req read %lld >= RANGES_SIZE %lu\n", *offp, RANGES_SIZE);
+      printk(KERN_INFO LOG_PREFIX "proc req read %lld >= RANGES_SIZE %u\n", *offp, RANGES_SIZE);
       return 0;
    }
 
@@ -142,15 +144,15 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 
    for(i = *offp / 4; i < to_copy/4; i++)
    {
-      printk(KERN_DEBUG LOG_PREFIX "proc read %d %x\n", i, ranges_data[i]);
+      printk(KERN_DEBUG LOG_PREFIX "proc read %d %x\n", i, ((u32*)ranges_data)[i]);
    }
 
-   ctu_ret = copy_to_user(buf, ((char*)ranges_data) + *offp, to_copy);
+   ctu_ret = copy_to_user(buf, ranges_data + *offp, to_copy);
    if(ctu_ret != 0)
    {
       printk(KERN_INFO LOG_PREFIX "copy_to_user didn't copy everything?? %zd of %zd\n", to_copy-ctu_ret, to_copy);
 
-      to_copy = ctu_ret;
+      to_copy += ctu_ret;
    }
 
    *offp += to_copy;
