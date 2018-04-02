@@ -128,7 +128,7 @@ void gpiomem_dummy_cdev_destroy(struct gpiomem_dummy_cdev *cdev)
 static int dev_open(struct inode *inodep, struct file *filep)
 {
    struct gpiomem_dummy *dummy = dummy_get();
-   if(dummy)
+   if(!dummy)
    {
       printk(KERN_ERR LOG_PREFIX "driver not initialized?!\n");
       return -ENODEV;
