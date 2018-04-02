@@ -145,6 +145,8 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
    unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
    unsigned long size = vma->vm_end - vma->vm_start;
 
+   printk(KERN_INFO LOG_PREFIX "mmap request!\n");
+
    if (offset & ~PAGE_MASK)
    {
       printk(KERN_ALERT LOG_PREFIX "offset not aligned: %ld\n", offset);
