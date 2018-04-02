@@ -123,6 +123,8 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 
    printk(KERN_INFO LOG_PREFIX "proc real read %zd at %lld\n", to_copy, *offp);
 
+   printk(KERN_DEBUG LOG_PREFIX "proc read %d\n", ranges_data[*offp]);
+
    ctu_ret = copy_to_user(buf, ranges_data + *offp, to_copy);
    if(ctu_ret != 0)
    {
