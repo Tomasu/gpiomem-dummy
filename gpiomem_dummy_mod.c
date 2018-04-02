@@ -80,7 +80,9 @@ static int __init gpiomem_init(void)
       return -EBUSY;
    }
 
-   error_ret = gpiomem_dummy_procfs_init(&dummy.proc);
+   memset(&dummy, 0, sizeof(dummy));
+
+   error_ret = gpiomem_dummy_procfs_init(&(dummy.proc));
    if(error_ret != 0)
    {
       printk(KERN_ERR LOG_PREFIX "failed to create procfs entry\n");
@@ -100,7 +102,7 @@ static int __init gpiomem_init(void)
 
    dummy.kmalloc_area = dummy.kmalloc_ptr;
 
-   error_ret = gpiomem_dummy_cdev_init(&dummy.cdev);
+   error_ret = gpiomem_dummy_cdev_init(&(dummy.cdev));
    if(error_ret != 0)
    {
       printk(KERN_ERR LOG_PREFIX "failed to create char device\n");
