@@ -148,6 +148,10 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
    a_copy_ < b_copy_ ? b_copy_ : a_copy_; \
 })
 
+const char *whence_str[] = {
+   "SEEK_SET", "SEEK_CUR", "SEEK_END", NULL
+};
+
 loff_t proc_llseek(struct file *filp, loff_t offset, int whence)
 {
    loff_t new_pos = 0;
@@ -173,6 +177,8 @@ loff_t proc_llseek(struct file *filp, loff_t offset, int whence)
    }
 
    new_pos = my_max(0, my_min(new_pos, RANGES_SIZE));
+   printk(KERN_INFO LOG_PREFIX "llseek: off=%lld whence=%s\n", offset, whence_str[whence]);
+
    filp->f_pos = new_pos;
 
    return new_pos;
