@@ -3,10 +3,13 @@
 
 #include <linux/proc_fs.h>
 
+#define RANGES_SIZE 12
+
 struct gpiomem_dummy_procfs {
    struct proc_dir_entry *proc_dt_ent;
    struct proc_dir_entry *proc_soc_ent;
    struct proc_dir_entry *proc_ranges_ent;
+   u8 ranges_data[RANGES_SIZE];
 };
 
 extern int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs);

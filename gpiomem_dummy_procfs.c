@@ -11,8 +11,6 @@
 
 #define RANGES_DATA(data, idx, val) data[idx*4] = (u8)(val << 24); data[idx*4+1] = (u8)(val << 16); data[idx*4+2] = (u8)(val << 8); data[idx*4+3] = (u8)val
 
-static u8 ranges_data[RANGES_SIZE];
-
 static ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp);
 static loff_t proc_llseek(struct file *filp, loff_t offset, int whence);
 
@@ -60,7 +58,7 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
       goto error_cleanup;
    }
 
-   ranges_ent = proc_create("ranges", 0, soc_ent, &proc_fops);
+   ranges_ent = proc_create_data("ranges", 0, soc_ent, &proc_fops, pfs);
    if(IS_ERR(ranges_ent))
    {
       printk(KERN_ALERT LOG_PREFIX "failed to create bcm device-tree procfs ranges entry\n");
@@ -76,9 +74,9 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
    pfs->proc_soc_ent = soc_ent;
    pfs->proc_ranges_ent = ranges_ent;
 
-   RANGES_DATA(ranges_data, 0, 0);
-   RANGES_DATA(ranges_data, 1, BCM283X_PERIPH_BASE);
-   RANGES_DATA(ranges_data, 2, BCM283X_PERIPH_SIZE);
+   RANGES_DATA(pfs->ranges_data, 0, 0);
+   RANGES_DATA(pfs->ranges_data, 1, BCM283X_PERIPH_BASE);
+   RANGES_DATA(pfs->ranges_data, 2, BCM283X_PERIPH_SIZE);
 
    return 0;
 
@@ -129,12 +127,21 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
    ssize_t ctu_ret = 0;
    int i = 0;
    int num_ints = 0;
+   struct gpiomem_dummy_procfs *pfs = NULL;
 
    if(*offp >= RANGES_SIZE)
    {
       printk(KERN_INFO LOG_PREFIX "proc req read %lld >= RANGES_SIZE %u\n", *offp, RANGES_SIZE);
       return 0;
    }
+
+   pfs = PDE_DATA(filp->f_inode);
+   if(!pfs)
+   {
+      printk(KERN_ERR LOG_PREFIX "Failed to find pde data in file handle\n");
+      return -ENOENT;
+   }
+
 
    printk(KERN_INFO LOG_PREFIX "proc req read num=%ld at off=%lld\n", count, *offp);
 
@@ -146,11 +153,11 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
    num_ints = to_copy / 4;
    for(i = *offp / 4; i < num_ints+1; i++)
    {
-      u32 d = ((u32*)ranges_data)[i];
+      u32 d = ((u32*)pfs->ranges_data)[i];
       printk(KERN_DEBUG LOG_PREFIX "proc read idx=%d numi=%d val=%x\n", i, num_ints, d);
    }
 
-   ctu_ret = copy_to_user(buf, ranges_data + *offp, to_copy);
+   ctu_ret = copy_to_user(buf, pfs->ranges_data + *offp, to_copy);
    if(ctu_ret != 0)
    {
       printk(KERN_INFO LOG_PREFIX "copy_to_user didn't copy everything?? %zd of %zd\n", to_copy-ctu_ret, to_copy);
