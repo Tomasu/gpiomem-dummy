@@ -38,7 +38,7 @@ static int mmap_fault(struct vm_fault* vmf)
       return VM_FAULT_SIGBUS;
    }*/
 
-   printk(KERN_INFO LOG_PREFIX "addr=0x%lx", vmf->address);
+   printk(KERN_DEBUG LOG_PREFIX "address=0x%lx\n", vmf->address);
 
    page = virt_to_page(ptr);
    get_page(page); // inc refcount to page

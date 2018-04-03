@@ -7,7 +7,7 @@
 #define DEVICE_NAME "gpiomem"    ///< The device will appear at /dev/gpiomem using this value
 #define CLASS_NAME  "gpiomem"        ///< The device class -- this is a character device driver
 
-#define LOG_PREFIX_ "gpiomem-dummy: "
+#define LOG_PREFIX_ "gpiomem-dummy-"
 
 #define BCM283X_PERIPH_BASE 0x7E000000Lu
 #define BCM283X_PERIPH_PGOFF (BCM283X_PERIPH_BASE >> PAGE_SHIFT)
