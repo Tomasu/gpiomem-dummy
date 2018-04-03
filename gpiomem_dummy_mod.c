@@ -36,32 +36,27 @@ MODULE_AUTHOR("Thomas Fjellstrom");    ///< The author -- visible when you use m
 MODULE_DESCRIPTION("A dummy raspberry-pi gpiomem driver");  ///< The description -- see modinfo
 MODULE_VERSION("0.1");            ///< A version number to inform users
 
-static struct gpiomem_dummy dummy =
-{
-   .initialized = 0,
-   .kmalloc_ptr = NULL,
-   .kmalloc_area = NULL
-};
+static struct gpiomem_dummy *dummy = NULL;
 
 struct gpiomem_dummy *dummy_get()
 {
-   if(!dummy.initialized)
+   if(!dummy || !dummy->initialized)
    {
       printk(KERN_ERR LOG_PREFIX "driver not initialized\n");
       return NULL;
    }
 
-   return &dummy;
+   return dummy;
 }
 
 void *dummy_get_mem_ptr()
 {
-   if(!dummy.initialized)
+   if(!dummy || !dummy->initialized)
    {
       return NULL;
    }
 
-   return dummy.kmalloc_ptr;
+   return dummy->kmalloc_ptr;
 }
 
 /** @brief The LKM initialization function
@@ -73,16 +68,22 @@ void *dummy_get_mem_ptr()
 static int __init gpiomem_init(void)
 {
    int error_ret = 0;
+   struct gpiomem_dummy *new_dummy = NULL;
 
-   if(dummy.initialized)
+   if(dummy)
    {
       printk(KERN_ERR LOG_PREFIX "already initialized!?\n");
       return -EBUSY;
    }
 
-   memset(&dummy, 0, sizeof(dummy));
+   new_dummy = kcalloc(1, sizeof(*new_dummy), GFP_KERNEL);
+   if(!new_dummy)
+   {
+      printk(KERN_ERR LOG_PREFIX "failed to allocate dummy struct\n");
+      return -ENOMEM;
+   }
 
-   error_ret = gpiomem_dummy_procfs_init(&(dummy.proc));
+   error_ret = gpiomem_dummy_procfs_init(&(new_dummy->proc));
    if(error_ret != 0)
    {
       printk(KERN_ERR LOG_PREFIX "failed to create procfs entry\n");
@@ -91,8 +92,8 @@ static int __init gpiomem_init(void)
 
    printk(KERN_INFO LOG_PREFIX "Initializing the gpiomem-dummy LKM\n");
 
-   dummy.kmalloc_ptr = kzalloc(KALLOC_MEM_SIZE, GFP_KERNEL);
-   if(!dummy.kmalloc_ptr)
+   new_dummy->kmalloc_ptr = kzalloc(KALLOC_MEM_SIZE, GFP_KERNEL);
+   if(!new_dummy->kmalloc_ptr)
    {
       printk(KERN_ALERT LOG_PREFIX "failed to allocate memory\n");
 
@@ -100,33 +101,37 @@ static int __init gpiomem_init(void)
       goto err_cleanup;
    }
 
-   dummy.kmalloc_area = dummy.kmalloc_ptr;
+   new_dummy->kmalloc_area = new_dummy->kmalloc_ptr;
 
-   error_ret = gpiomem_dummy_cdev_init(&(dummy.cdev));
+   error_ret = gpiomem_dummy_cdev_init(&(new_dummy->cdev));
    if(error_ret != 0)
    {
       printk(KERN_ERR LOG_PREFIX "failed to create char device\n");
       goto err_cleanup;
    }
 
-   dummy.initialized = 1;
+   new_dummy->initialized = 1;
+
+   dummy = new_dummy;
 
    return 0;
 
 err_cleanup:
 
-   gpiomem_dummy_cdev_destroy(&dummy.cdev);
+   gpiomem_dummy_cdev_destroy(&new_dummy->cdev);
 
-   if(dummy.kmalloc_ptr)
+   if(new_dummy->kmalloc_ptr)
    {
-      kfree(dummy.kmalloc_ptr);
-      dummy.kmalloc_ptr = NULL;
-      dummy.kmalloc_area = NULL;
+      kfree(new_dummy->kmalloc_ptr);
+      new_dummy->kmalloc_ptr = NULL;
+      new_dummy->kmalloc_area = NULL;
    }
 
-   gpiomem_dummy_procfs_destroy(&dummy.proc);
+   gpiomem_dummy_procfs_destroy(&new_dummy->proc);
 
-   dummy.initialized = 0;
+   new_dummy->initialized = 0;
+
+   kfree(new_dummy);
 
    return error_ret;
 }
@@ -137,17 +142,25 @@ err_cleanup:
  */
 static void __exit gpiomem_exit(void)
 {
-   gpiomem_dummy_procfs_destroy(&dummy.proc);
-   gpiomem_dummy_cdev_destroy(&dummy.cdev);
-
-   if(dummy.kmalloc_ptr)
+   if(!dummy)
    {
-      kfree(dummy.kmalloc_ptr); // free our memory
-      dummy.kmalloc_ptr = NULL;
-      dummy.kmalloc_area = NULL;
+      printk(KERN_ERR LOG_PREFIX "not initialized, can't deinitialize\n");
+      return;
    }
 
-   dummy.initialized = 0;
+   gpiomem_dummy_procfs_destroy(&dummy->proc);
+   gpiomem_dummy_cdev_destroy(&dummy->cdev);
+
+   if(dummy->kmalloc_ptr)
+   {
+      kfree(dummy->kmalloc_ptr); // free our memory
+      dummy->kmalloc_ptr = NULL;
+      dummy->kmalloc_area = NULL;
+   }
+
+   dummy->initialized = 0;
+
+   dummy = NULL;
 
    printk(KERN_INFO LOG_PREFIX "Goodbye from the LKM!\n");
 }

@@ -41,6 +41,7 @@ a_copy_ < b_copy_ ? b_copy_ : a_copy_; \
 int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
 {
    int error_ret = 0;
+   int i = 0;
    struct proc_dir_entry *dt_ent = NULL;
    struct proc_dir_entry *soc_ent = NULL;
    struct proc_dir_entry *ranges_ent = NULL;
@@ -91,6 +92,13 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
    range_set(pfs->ranges_data, 0, 0);
    range_set(pfs->ranges_data, 1, BCM283X_PERIPH_BASE);
    range_set(pfs->ranges_data, 2, BCM283X_PERIPH_SIZE);
+
+   for(i = 0; i < RANGES_SIZE/4; i++)
+   {
+      u32 *ptr = (u32*)pfs->ranges_data;
+      u32 d = ptr[i];
+      printk(KERN_DEBUG LOG_PREFIX "proc (data) idx=%d val=%x (%d,%d,%d,%d)\n", i, d, pfs->ranges_data[i*4], pfs->ranges_data[i*4+1], pfs->ranges_data[i*4+2], pfs->ranges_data[i*4+3]);
+   }
 
    return 0;
 
@@ -174,7 +182,7 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
    {
       u32 *ptr = (u32*)pfs->ranges_data;
       u32 d = ptr[i];
-      printk(KERN_DEBUG LOG_PREFIX "proc (data) idx=%d val=%x (%d,%d,%d,%d)\n", i, d, pfs->ranges_data[i], pfs->ranges_data[i+1], pfs->ranges_data[i+2], pfs->ranges_data[i+3]);
+      printk(KERN_DEBUG LOG_PREFIX "proc (data) idx=%d val=%x (%d,%d,%d,%d)\n", i, d, pfs->ranges_data[i*4], pfs->ranges_data[i*4+1], pfs->ranges_data[i*4+2], pfs->ranges_data[i*4+3]);
    }
 
    ctu_ret = copy_to_user(buf, pfs->ranges_data + *offp, to_copy);
