@@ -10,6 +10,7 @@
 
 #include "gpiomem_dummy.h"
 #include "gpiomem_dummy_mmap.h"
+#include <linux/mman.h>
 
 #define LOG_PREFIX LOG_PREFIX_ "cdev: "
 
@@ -27,7 +28,8 @@ static struct file_operations cdev_fops =
    .open = dev_open,
    .release = dev_release,
    .mmap = dev_mmap,
-   .llseek = no_llseek
+   .llseek = no_llseek,
+   .mmap_supported_flags = MAP_SYNC | MAP_LOCKED | MAP_SHARED
 };
 
 int gpiomem_dummy_cdev_init(struct gpiomem_dummy_cdev *cdev)

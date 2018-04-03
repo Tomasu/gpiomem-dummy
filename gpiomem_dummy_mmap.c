@@ -11,8 +11,6 @@
 static void mmap_open(struct vm_area_struct* vma)
 {
    // do nothing
-   vma->vm_flags |= VM_IO;
-
    printk(KERN_DEBUG LOG_PREFIX "mmap_open\n");
 }
 
@@ -26,6 +24,7 @@ static int mmap_fault(struct vm_fault* vmf)
 {
    void *ptr = NULL;
    struct page *page = NULL;
+   struct vm_area_struct *vma = vmf->vma;
 
    ptr = dummy_get_mem_ptr();
    if(IS_ERR(ptr))
@@ -40,14 +39,16 @@ static int mmap_fault(struct vm_fault* vmf)
       return VM_FAULT_SIGBUS;
    }*/
 
-   printk(KERN_DEBUG LOG_PREFIX "address=0x%lx\n", vmf->address - vmf->vma->vm_start);
+   printk(KERN_DEBUG LOG_PREFIX "address=0x%lx\n", vmf->address - vma->vm_start);
 
    page = virt_to_page(ptr);
    get_page(page); // inc refcount to page
 
    vmf->page = page;
 
-   return 0;
+   //zap_vma_ptes(vmf->vma, 0, vma->vm_end - vma->vm_start);
+
+   return VM_FAULT_NOPAGE;
 }
 
 struct vm_operations_struct gpiomem_dummy_mmap_vmops = {
