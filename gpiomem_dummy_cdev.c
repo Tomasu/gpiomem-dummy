@@ -178,7 +178,7 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
 
    // TODO: check if this is required
    // locks vma in ram, wont be swapped out
-   vma->vm_flags |= VM_LOCKED;
+   vma->vm_flags = (vma->vm_flags | VM_READ) & ~VM_WRITE;
 
    vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 

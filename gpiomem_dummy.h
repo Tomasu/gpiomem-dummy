@@ -3,6 +3,7 @@
 
 #include "gpiomem_dummy_cdev.h"
 #include "gpiomem_dummy_procfs.h"
+#include "gpiomem_dummy_pdev.h"
 
 #define DEVICE_NAME "gpiomem"    ///< The device will appear at /dev/gpiomem using this value
 #define CLASS_NAME  "gpiomem"        ///< The device class -- this is a character device driver
@@ -26,6 +27,7 @@ struct gpiomem_dummy
    int initialized;
    struct gpiomem_dummy_cdev cdev; // our char device state.
    struct gpiomem_dummy_procfs proc; // our proc device state;
+   struct gpiomem_dummy_pdev pdev; // our platform device state
 
    void *kmalloc_ptr;  // our single gpio mem page
    void *kmalloc_area; // a second pointer, because reasons?

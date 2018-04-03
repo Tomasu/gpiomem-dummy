@@ -23,6 +23,7 @@
 #include <linux/vmalloc.h>
 #include <linux/errno.h>
 #include <linux/err.h>
+#include <linux/platform_device.h>
 
 #ifdef MODVERSIONS
 #  include <linux/modversions.h>
@@ -30,6 +31,7 @@
 
 #include "gpiomem_dummy_procfs.h"
 #include "gpiomem_dummy_cdev.h"
+#include "gpiomem_dummy_pdev.h"
 
 MODULE_LICENSE("GPL");            ///< The license type -- this affects available functionality
 MODULE_AUTHOR("Thomas Fjellstrom");    ///< The author -- visible when you use modinfo
@@ -85,6 +87,13 @@ static int __init gpiomem_init(void)
       return -ENOMEM;
    }
 
+   error_ret = gpiomem_dummy_pdrv_init(&new_dummy->pdev);
+   if(error_ret != 0)
+   {
+      printk(KERN_ERR LOG_PREFIX "failed to initialize pdev\n");
+      return error_ret;
+   }
+
    error_ret = gpiomem_dummy_procfs_init(&(new_dummy->proc));
    if(error_ret != 0)
    {
@@ -130,6 +139,8 @@ err_cleanup:
    }
 
    gpiomem_dummy_procfs_destroy(&new_dummy->proc);
+
+   gpiomem_dummy_pdrv_exit(&new_dummy->pdev);
 
    new_dummy->initialized = 0;
 
