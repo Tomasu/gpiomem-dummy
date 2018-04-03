@@ -11,6 +11,8 @@
 static void mmap_open(struct vm_area_struct* vma)
 {
    // do nothing
+   vma->vm_flags |= VM_IO;
+
    printk(KERN_DEBUG LOG_PREFIX "mmap_open\n");
 }
 
