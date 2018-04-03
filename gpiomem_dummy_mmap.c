@@ -46,9 +46,9 @@ static int mmap_fault(struct vm_fault* vmf)
 
    vmf->page = page;
 
-   //zap_vma_ptes(vmf->vma, 0, vma->vm_end - vma->vm_start);
+   zap_vma_ptes(vmf->vma, 0, vma->vm_end - vma->vm_start);
 
-   return VM_FAULT_NOPAGE;
+   return 0;
 }
 
 struct vm_operations_struct gpiomem_dummy_mmap_vmops = {
