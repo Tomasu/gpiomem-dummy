@@ -100,7 +100,7 @@ int gpiomem_dummy_procfs_init(struct gpiomem_dummy_procfs *pfs)
    {
       u32 *ptr = (u32*)pfs->ranges_data;
       u32 d = ptr[i];
-      printk(KERN_DEBUG LOG_PREFIX "proc (data) idx=%d val=%x (%d,%d,%d,%d)\n", i, d, pfs->ranges_data[i*4], pfs->ranges_data[i*4+1], pfs->ranges_data[i*4+2], pfs->ranges_data[i*4+3]);
+      printk(KERN_DEBUG LOG_PREFIX "(data) idx=%d val=%x (%d,%d,%d,%d)\n", i, d, pfs->ranges_data[i*4], pfs->ranges_data[i*4+1], pfs->ranges_data[i*4+2], pfs->ranges_data[i*4+3]);
    }
 
    return 0;
@@ -156,7 +156,7 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 
    if(*offp >= RANGES_SIZE)
    {
-      printk(KERN_INFO LOG_PREFIX "proc req read %lld >= RANGES_SIZE %u\n", *offp, RANGES_SIZE);
+      printk(KERN_INFO LOG_PREFIX "req read %lld >= RANGES_SIZE %u\n", *offp, RANGES_SIZE);
       return 0;
    }
 
@@ -173,19 +173,19 @@ ssize_t proc_read(struct file *filp, char *buf, size_t count, loff_t *offp)
       return -ENOENT;
    }
 
-   printk(KERN_INFO LOG_PREFIX "proc req read num=%ld at off=%lld\n", count, *offp);
+   printk(KERN_INFO LOG_PREFIX "req read num=%ld at off=%lld\n", count, *offp);
 
    if(*offp + count > RANGES_SIZE)
       to_copy = RANGES_SIZE - *offp;
 
-   printk(KERN_INFO LOG_PREFIX "proc real read num=%zd at off=%lld\n", to_copy, *offp);
+   printk(KERN_INFO LOG_PREFIX "real read num=%zd at off=%lld\n", to_copy, *offp);
 
    num_ints = to_copy / 4;
    for(i = 0; i < RANGES_SIZE/4; i++)
    {
       u32 *ptr = (u32*)pfs->ranges_data;
       u32 d = ptr[i];
-      printk(KERN_DEBUG LOG_PREFIX "proc (data) idx=%d val=%x (%d,%d,%d,%d)\n", i, d, pfs->ranges_data[i*4], pfs->ranges_data[i*4+1], pfs->ranges_data[i*4+2], pfs->ranges_data[i*4+3]);
+      printk(KERN_DEBUG LOG_PREFIX "(data) idx=%d val=%x (%d,%d,%d,%d)\n", i, d, pfs->ranges_data[i*4], pfs->ranges_data[i*4+1], pfs->ranges_data[i*4+2], pfs->ranges_data[i*4+3]);
    }
 
    ctu_ret = copy_to_user(buf, pfs->ranges_data + *offp, to_copy);

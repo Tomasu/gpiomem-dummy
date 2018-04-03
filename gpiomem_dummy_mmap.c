@@ -32,11 +32,13 @@ static int mmap_fault(struct vm_fault* vmf)
       return VM_FAULT_SIGBUS;
    }
 
-   if(vmf->pgoff != BCM283X_GPIO_PGOFF)
+   /*if(vmf->pgoff != BCM283X_GPIO_PGOFF)
    {
       printk(KERN_ERR LOG_PREFIX "attempt to access outside the gpio registers: pgoff:%lu gpio-pgoff:%lu", vmf->pgoff, BCM283X_GPIO_PGOFF);
       return VM_FAULT_SIGBUS;
-   }
+   }*/
+
+   printk(KERN_INFO LOG_PREFIX "addr=0x%lx", vmf->address);
 
    page = virt_to_page(ptr);
    get_page(page); // inc refcount to page
