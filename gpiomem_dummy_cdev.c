@@ -155,11 +155,11 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
       return -ENXIO;
    }
 
-   if (vma->vm_pgoff != BCM283X_PERIPH_PGOFF)
+   /*if (vma->vm_pgoff != BCM283X_PERIPH_PGOFF)
    {
       printk(KERN_ERR LOG_PREFIX "attempt to map outside of peripheral memory: vpgo=%d pbgo=%d\n", vma->vm_pgoff, BCM283X_PERIPH_PGOFF);
       return -ENXIO;
-   }
+   }*/
 
    if (size > BCM283X_PERIPH_SIZE)
    {
