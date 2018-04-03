@@ -11,6 +11,7 @@
 
 static void range_set(u8 *data, int idx, u32 val)
 {
+   printk(KERN_DEBUG LOG_PREFIX "set range_data[%ud] = %ud", idx, val);
    data[idx*4] = (u8)(val << 24);
    data[idx*4+1] = (u8)(val << 16);
    data[idx*4+2] = (u8)(val << 8);
