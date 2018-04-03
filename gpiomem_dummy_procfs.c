@@ -7,6 +7,8 @@
 
 #include "gpiomem_dummy.h"
 
+#define LOG_PREFIX LOG_PREFIX_ "proc: "
+
 #define RANGES_SIZE 12
 
 static void range_set(u8 *data, int idx, u32 val)

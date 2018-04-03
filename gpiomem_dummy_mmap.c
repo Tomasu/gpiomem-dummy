@@ -4,6 +4,8 @@
 
 #include "gpiomem_dummy.h"
 
+#define LOG_PREFIX LOG_PREFIX_ "mmap: "
+
 /* memory handler functions */
 
 static void mmap_open(struct vm_area_struct* vma)

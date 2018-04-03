@@ -36,6 +36,8 @@ MODULE_AUTHOR("Thomas Fjellstrom");    ///< The author -- visible when you use m
 MODULE_DESCRIPTION("A dummy raspberry-pi gpiomem driver");  ///< The description -- see modinfo
 MODULE_VERSION("0.1");            ///< A version number to inform users
 
+#define LOG_PREFIX LOG_PREFIX_
+
 static struct gpiomem_dummy *dummy = NULL;
 
 struct gpiomem_dummy *dummy_get()

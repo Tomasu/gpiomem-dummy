@@ -11,6 +11,8 @@
 #include "gpiomem_dummy.h"
 #include "gpiomem_dummy_mmap.h"
 
+#define LOG_PREFIX LOG_PREFIX_ "cdev: "
+
 static int dev_open(struct inode *inodep, struct file *filep);
 static int dev_mmap(struct file* file, struct vm_area_struct* vma);
 static int dev_release(struct inode *inodep, struct file *filep);
