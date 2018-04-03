@@ -44,9 +44,11 @@ static int mmap_fault(struct vm_fault* vmf)
    page = virt_to_page(ptr);
    get_page(page); // inc refcount to page
 
+   vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~VM_MAYWRITE;
+
    vmf->page = page;
 
-   zap_vma_ptes(vmf->vma, 0, vma->vm_end - vma->vm_start);
+   //zap_vma_ptes(vmf->vma, 0, vma->vm_end - vma->vm_start);
 
    return 0;
 }
