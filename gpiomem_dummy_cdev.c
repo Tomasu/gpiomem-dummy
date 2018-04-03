@@ -29,7 +29,6 @@ static struct file_operations cdev_fops =
    .release = dev_release,
    .mmap = dev_mmap,
    .llseek = no_llseek,
-   .mmap_supported_flags = MAP_SYNC | MAP_LOCKED | MAP_SHARED
 };
 
 int gpiomem_dummy_cdev_init(struct gpiomem_dummy_cdev *cdev)
