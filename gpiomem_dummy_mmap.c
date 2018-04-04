@@ -44,6 +44,24 @@ static int mmap_fault(struct vm_fault* vmf)
 
    printk(KERN_DEBUG LOG_PREFIX "fault: pgoff=0x%lx addr=0x%lx\n", vmf->pgoff, vmf->address - vma->vm_start);
 
+   printk("fault: flags ");
+   if(vmf->flags & FAULT_FLAG_INSTRUCTION)
+      printk("INST ");
+   if(vmf->flags & FAULT_FLAG_KILLABLE)
+      printk("KILLABLE ");
+   if(vmf->flags & FAULT_FLAG_MKWRITE)
+      printk("MKWRITE ");
+   if(vmf->flags & FAULT_FLAG_REMOTE)
+      printk("REMOTE ");
+   if(vmf->flags & FAULT_FLAG_TRIED)
+      printk("TRIED ");
+   if(vmf->flags & FAULT_FLAG_USER)
+      printk("USER ");
+   if(vmf->flags & FAULT_FLAG_WRITE)
+      printk("WRITE ");
+
+   printk("\n");
+
    page = vmf->page;
 
    if(!page)
