@@ -86,11 +86,35 @@ static int mmap_fault(struct vm_fault* vmf)
    return 0;
 }
 
+int split(struct vm_area_struct * area, unsigned long addr)
+{
+   printk(KERN_DEBUG LOG_PREFIX "split!\n");
+   return 0;
+}
+
+int mremap(struct vm_area_struct * area)
+{
+   printk(KERN_DEBUG LOG_PREFIX "mremap!\n");
+   return 0;
+}
+
+void map_pages(struct vm_fault *vmf,
+                  pgoff_t start_pgoff, pgoff_t end_pgoff)
+{
+   printk(KERN_DEBUG LOG_PREFIX "map_pages! start=%lu end=%lu\n", start_pgoff, end_pgoff);
+}
+
 /* notification that a previously read-only page is about to become
  * writable, if an error is returned it will cause a SIGBUS */
 int mmap_mkwrite(struct vm_fault *vmf)
 {
    printk(KERN_DEBUG LOG_PREFIX "mkwrite!\n");
+   return 0;
+}
+
+int pfn_mkwrite(struct vm_fault *vmf)
+{
+   printk(KERN_DEBUG LOG_PREFIX "pfn_mkwrite!\n");
    return 0;
 }
 
@@ -109,5 +133,9 @@ struct vm_operations_struct gpiomem_dummy_mmap_vmops = {
    .close = mmap_close, /* mmap-close */
    .fault = mmap_fault, /* fault handler */
    .page_mkwrite = mmap_mkwrite,
-   .access = mmap_access
+   .pfn_mkwrite = pfn_mkwrite,
+   .access = mmap_access,
+   .split = split,
+   .mremap = mremap,
+   .map_pages = map_pages
 };
