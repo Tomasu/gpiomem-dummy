@@ -119,6 +119,7 @@ int mmap_mkwrite(struct vm_fault *vmf)
    printk(KERN_DEBUG LOG_PREFIX "page_mkwrite!\n");
    lock_page(vmf->page);
    set_page_dirty(vmf->page);
+   vmf->vma->vm_flags &= ~VM_WRITE;
    return VM_FAULT_LOCKED;
 }
 
