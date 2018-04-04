@@ -116,8 +116,10 @@ void map_pages(struct vm_fault *vmf,
  * writable, if an error is returned it will cause a SIGBUS */
 int mmap_mkwrite(struct vm_fault *vmf)
 {
-   printk(KERN_DEBUG LOG_PREFIX "mkwrite!\n");
-   return 0;
+   printk(KERN_DEBUG LOG_PREFIX "page_mkwrite!\n");
+   lock_page(vmf->page);
+   set_page_dirty(vmf->page);
+   return VM_FAULT_LOCKED;
 }
 
 int pfn_mkwrite(struct vm_fault *vmf)
