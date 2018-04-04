@@ -15,7 +15,7 @@ static void mmap_open(struct vm_area_struct* vma)
 
    //vma->vm_flags = (vma->vm_flags | VM_DONTEXPAND | VM_DONTCOPY | VM_DONTDUMP | VM_IO | VM_MAYREAD | VM_MIXEDMAP);
    vma->vm_flags |= VM_READ | VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_IO | VM_MIXEDMAP /*| VM_WRITE*/;
-   vma->vm_flags &= ~(/*VM_MAYWRITE | */VM_WRITE);
+   vma->vm_flags &= ~(VM_MAYWRITE /*| VM_WRITE*/);
    vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 }
 
@@ -96,8 +96,8 @@ static int mmap_fault(struct vm_fault* vmf)
 
    printk(KERN_DEBUG LOG_PREFIX "address=0x%lx\n", vmf->address - vma->vm_start);
 
-   if(!(vmf->flags & FAULT_FLAG_WRITE))
-      vma->vm_flags &= ~VM_WRITE;
+   //if(!(vmf->flags & FAULT_FLAG_WRITE))
+   //   vma->vm_flags &= ~VM_WRITE;
 
    //vma->vm_flags &= ~VM_WRITE;
    //vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_WRITE);
