@@ -26,7 +26,12 @@ static int mmap_fault(struct vm_fault* vmf)
    struct page *page = NULL;
    struct vm_area_struct *vma = vmf->vma;
 
-   page = dummy_get()->page;
+   page = vmf->page;
+
+   if(!page)
+   {
+      page = dummy_get()->page;
+   }
 
    if(!page || IS_ERR(page))
    {
@@ -50,6 +55,7 @@ static int mmap_fault(struct vm_fault* vmf)
    vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_MAYWRITE | VM_WRITE);
 
    vmf->page = page;
+   get_page(page);
 
    return 0;
 }
