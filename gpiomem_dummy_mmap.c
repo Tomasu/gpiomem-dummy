@@ -76,7 +76,8 @@ static int mmap_fault(struct vm_fault* vmf)
 
    tmp_pte = *pte;
 
-   set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_PRESENT | _PAGE_PROTNONE));
+   set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_PRESENT));
+   set_pte(pte, pte_set_flags(tmp_pte, _PAGE_PROTNONE));
 
    vmf->page = page;
    get_page(page);
@@ -84,8 +85,27 @@ static int mmap_fault(struct vm_fault* vmf)
    return 0;
 }
 
+/* notification that a previously read-only page is about to become
+ * writable, if an error is returned it will cause a SIGBUS */
+int mmap_mkwrite(struct vm_fault *vmf)
+{
+   printk(KERN_DEBUG LOG_PREFIX "mkwrite!\n");
+   return 0;
+}
+
+/* called by access_process_vm when get_user_pages() fails, typically
+ * for use by special VMAs that can switch between memory and hardware
+ */
+int mmap_access(struct vm_area_struct *vma, unsigned long addr,
+              void *buf, int len, int write)
+{
+
+}
+
 struct vm_operations_struct gpiomem_dummy_mmap_vmops = {
    .open  = mmap_open,  /* mmap-open */
    .close = mmap_close, /* mmap-close */
    .fault = mmap_fault, /* fault handler */
+   .page_mkwrite = mmap_mkwrite,
+   .access = mmap_access
 };
