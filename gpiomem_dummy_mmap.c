@@ -64,7 +64,7 @@ static int mmap_fault(struct vm_fault* vmf)
 
    tmp_pte = *vmf->pte;
 
-   set_pte(vmf->pte, pte_clear_flags(tmp_pte, _PAGE_PRESENT));
+   set_pte(vmf->pte, pte_clear_flags(tmp_pte, _PAGE_PRESENT | _PAGE_PROTNONE));
 
    vmf->page = page;
    get_page(page);
