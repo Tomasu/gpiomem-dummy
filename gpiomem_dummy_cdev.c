@@ -180,7 +180,7 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
    // locks vma in ram, wont be swapped out
    vma->vm_flags = (vma->vm_flags | VM_READ | VM_MAYREAD | VM_IO | VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_MIXEDMAP) & ~(VM_MAYWRITE);
 
-   vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+   vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 
    vma->vm_ops = &gpiomem_dummy_mmap_vmops;
 
