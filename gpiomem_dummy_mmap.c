@@ -54,7 +54,7 @@ static int mmap_fault(struct vm_fault* vmf)
 
    printk(KERN_DEBUG LOG_PREFIX "address=0x%lx\n", vmf->address - vma->vm_start);
 
-   vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_MAYWRITE /*| VM_WRITE*/);
+   vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_WRITE);
 
    vmf->page = page;
    get_page(page);
