@@ -30,6 +30,7 @@ static int mmap_fault(struct vm_fault* vmf)
 {
    struct page *page = NULL;
    struct vm_area_struct *vma = vmf->vma;
+   unsigned long addr = 0;
    pte_t tmp_pte;
    pgd_t *pgd;
    p4d_t *p4d;
@@ -67,17 +68,17 @@ static int mmap_fault(struct vm_fault* vmf)
 
    vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_WRITE);
 
-   unsigned long addr = page_to_pfn(page) << PAGE_SHIFT;
+/*   addr = page_to_pfn(page) << PAGE_SHIFT;
    pgd = pgd_offset(vma->vm_mm, addr);
    p4d = p4d_offset(pgd, addr);
    pud = pud_offset(p4d, addr);
    pmd = pmd_offset(pud, addr);
-   pte = pte_offset_map(pmd, addr);
+   pte = pte_offset_map(pmd, addr);*/
 
-   tmp_pte = *pte;
+//   tmp_pte = *pte;
 
-   set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_PRESENT));
-   set_pte(pte, pte_set_flags(tmp_pte, _PAGE_PROTNONE));
+//   set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_PRESENT));
+ //  set_pte(pte, pte_set_flags(tmp_pte, _PAGE_PROTNONE));
 
    vmf->page = page;
    get_page(page);
@@ -99,7 +100,8 @@ int mmap_mkwrite(struct vm_fault *vmf)
 int mmap_access(struct vm_area_struct *vma, unsigned long addr,
               void *buf, int len, int write)
 {
-
+   printk(KERN_DEBUG LOG_PREFIX "access: addr=0x%lx len=%d write=%d\n", addr, len, write);
+   return len;
 }
 
 struct vm_operations_struct gpiomem_dummy_mmap_vmops = {
