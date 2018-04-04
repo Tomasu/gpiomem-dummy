@@ -176,11 +176,11 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
       return(-EINVAL);
    }
 
-   vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
-
    vma->vm_ops = &gpiomem_dummy_mmap_vmops;
 
    vma->vm_ops->open(vma);
+
+   vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 
    printk(KERN_INFO LOG_PREFIX "mmap success!\n");
 
