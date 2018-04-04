@@ -39,7 +39,7 @@ static int mmap_fault(struct vm_fault* vmf)
       return VM_FAULT_SIGBUS;
    }
 
-   if(vmf->flags & VM_WRITE || vma->vm_flags & VM_WRITE)
+   if(vmf->flags & VM_WRITE || vmf->flags & VM_FAULT_WRITE)
    {
       printk(KERN_DEBUG LOG_PREFIX "write to page!\n");
    }
