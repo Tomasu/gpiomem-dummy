@@ -74,6 +74,7 @@ static int mmap_fault(struct vm_fault* vmf)
 
    printk(KERN_DEBUG LOG_PREFIX "address=0x%lx\n", vmf->address - vma->vm_start);
 
+   vma->vm_flags &= ~VM_WRITE;
    //vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_WRITE);
 
 /*   addr = page_to_pfn(page) << PAGE_SHIFT;
@@ -119,7 +120,7 @@ int mmap_mkwrite(struct vm_fault *vmf)
    printk(KERN_DEBUG LOG_PREFIX "page_mkwrite!\n");
    lock_page(vmf->page);
    set_page_dirty(vmf->page);
-   vmf->vma->vm_flags &= ~VM_WRITE;
+
    return VM_FAULT_LOCKED;
 }
 
