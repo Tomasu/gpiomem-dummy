@@ -14,7 +14,7 @@ static void mmap_open(struct vm_area_struct* vma)
    printk(KERN_DEBUG LOG_PREFIX "mmap_open\n");
 
    //vma->vm_flags = (vma->vm_flags | VM_DONTEXPAND | VM_DONTCOPY | VM_DONTDUMP | VM_IO | VM_MAYREAD | VM_MIXEDMAP);
-   vma->vm_flags |= VM_READ | VM_MAYREAD | VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_SYNC /*| VM_IO | VM_MIXEDMAP*/;
+   vma->vm_flags |= VM_READ | VM_MAYREAD | VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_SYNC | VM_IO /*| VM_IO | VM_MIXEDMAP*/;
    vma->vm_flags &= ~(VM_MAYWRITE | VM_WRITE);
    vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 }
