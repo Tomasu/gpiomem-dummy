@@ -1,7 +1,7 @@
 #include "gpiomem_dummy_mmap.h"
 
 #include <linux/mm.h>
-
+#include <linux/pagemap.h>
 #include "gpiomem_dummy.h"
 
 #define LOG_PREFIX LOG_PREFIX_ "mmap: "
@@ -123,7 +123,9 @@ int mmap_mkwrite(struct vm_fault *vmf)
 int pfn_mkwrite(struct vm_fault *vmf)
 {
    printk(KERN_DEBUG LOG_PREFIX "pfn_mkwrite!\n");
-   return 0;
+   lock_page(vmf->page);
+   set_page_dirty(vmf->page);
+   return VM_FAULT_LOCKED;
 }
 
 /* called by access_process_vm when get_user_pages() fails, typically
