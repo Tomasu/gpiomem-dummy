@@ -12,7 +12,7 @@ static void mmap_open(struct vm_area_struct* vma)
 {
    // do nothing
    printk(KERN_DEBUG LOG_PREFIX "mmap_open\n");
-   //vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_MAYWRITE | VM_WRITE);
+   vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_MAYWRITE /*| VM_WRITE*/);
 }
 
 static void mmap_close(struct vm_area_struct* vma)
@@ -52,7 +52,7 @@ static int mmap_fault(struct vm_fault* vmf)
 
    printk(KERN_DEBUG LOG_PREFIX "address=0x%lx\n", vmf->address - vma->vm_start);
 
-   vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_MAYWRITE | VM_WRITE);
+   vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_MAYWRITE /*| VM_WRITE*/);
 
    vmf->page = page;
    get_page(page);
