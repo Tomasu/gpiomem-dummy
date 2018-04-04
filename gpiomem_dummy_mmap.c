@@ -42,7 +42,7 @@ static int mmap_fault(struct vm_fault* vmf)
    pmd_t *pmd;
    pte_t *pte;
 
-   printk(KERN_DEBUG LOG_PREFIX "fault: pgoff=0x%lx addr=0x%lx pte=%p\n", vmf->pgoff, vmf->address - vma->vm_start, vmf->pte);
+   printk(KERN_DEBUG LOG_PREFIX "fault: pgoff=0x%lx addr=0x%lx pte=%p\n", vmf->pgoff, vmf->address - vma->vm_start, vmf->prealloc_pte);
 
 
 
