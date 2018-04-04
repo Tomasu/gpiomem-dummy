@@ -30,6 +30,7 @@ static int mmap_fault(struct vm_fault* vmf)
 {
    struct page *page = NULL;
    struct vm_area_struct *vma = vmf->vma;
+   pte_t tmp_pte;
 
    printk(KERN_DEBUG LOG_PREFIX "fault: pgoff=0x%lx addr=0x%lx\n", vmf->pgoff, vmf->address - vma->vm_start);
 
@@ -60,6 +61,10 @@ static int mmap_fault(struct vm_fault* vmf)
    printk(KERN_DEBUG LOG_PREFIX "address=0x%lx\n", vmf->address - vma->vm_start);
 
    vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_WRITE);
+
+   tmp_pte = *vmf->pte;
+
+   set_pte(vmf->pte, pte_clear_flags(tmp_pte, _PAGE_PRESENT));
 
    vmf->page = page;
    get_page(page);
