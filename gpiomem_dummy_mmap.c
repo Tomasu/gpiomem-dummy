@@ -93,6 +93,9 @@ static int mmap_fault(struct vm_fault* vmf)
 //   set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_PRESENT));
  //  set_pte(pte, pte_set_flags(tmp_pte, _PAGE_PROTNONE));
 
+   vma->vm_flags |= VM_WRITE;
+   vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
+
    vmf->page = page;
    get_page(page);
 
