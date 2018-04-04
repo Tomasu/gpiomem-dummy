@@ -16,6 +16,7 @@ static void mmap_open(struct vm_area_struct* vma)
    //vma->vm_flags = (vma->vm_flags | VM_DONTEXPAND | VM_DONTCOPY | VM_DONTDUMP | VM_IO | VM_MAYREAD | VM_MIXEDMAP);
    vma->vm_flags |= VM_READ | VM_MAYREAD | VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_WRITE /*| VM_IO | VM_MIXEDMAP*/;
    vma->vm_flags &= ~(VM_MAYWRITE);
+   vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 }
 
 static void mmap_close(struct vm_area_struct* vma)
@@ -120,9 +121,11 @@ void map_pages(struct vm_fault *vmf,
  * writable, if an error is returned it will cause a SIGBUS */
 int mmap_mkwrite(struct vm_fault *vmf)
 {
+   struct vm_area_struct *vma = vmf->vma;
+
    printk(KERN_DEBUG LOG_PREFIX "page_mkwrite!\n");
-   vmf->vma->vm_flags |= VM_WRITE;
-   vmf->vma->vm_flags &= ~VM_READ;
+   vma->vm_flags |= VM_WRITE;
+   vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 
    lock_page(vmf->page);
    set_page_dirty(vmf->page);

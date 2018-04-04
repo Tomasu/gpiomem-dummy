@@ -180,8 +180,6 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
 
    vma->vm_ops->open(vma);
 
-   vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
-
    printk(KERN_INFO LOG_PREFIX "mmap success!\n");
 
    // dev_mmap_open(vma); <-- is it really necessary to call the mmap open function here if we have one set up?? I'd think it's already been called....
