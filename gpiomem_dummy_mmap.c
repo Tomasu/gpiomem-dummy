@@ -12,7 +12,7 @@ static void mmap_open(struct vm_area_struct* vma)
 {
    // do nothing
    printk(KERN_DEBUG LOG_PREFIX "mmap_open\n");
-   vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~VM_MAYWRITE;
+   vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_MAYWRITE | VM_WRITE);
 }
 
 static void mmap_close(struct vm_area_struct* vma)
@@ -23,15 +23,20 @@ static void mmap_close(struct vm_area_struct* vma)
 
 static int mmap_fault(struct vm_fault* vmf)
 {
-   void *ptr = NULL;
    struct page *page = NULL;
    struct vm_area_struct *vma = vmf->vma;
 
-   ptr = dummy_get_mem_ptr();
-   if(IS_ERR(ptr))
+   page = dummy_get()->page;
+
+   if(!page || IS_ERR(page))
    {
       printk(KERN_ERR LOG_PREFIX "unable to get mem pointer\n");
       return VM_FAULT_SIGBUS;
+   }
+
+   if(vmf->flags & VM_WRITE)
+   {
+      printk(KERN_DEBUG LOG_PREFIX "write to page!\n");
    }
 
    /*if(vmf->pgoff != BCM283X_GPIO_PGOFF)
@@ -42,14 +47,9 @@ static int mmap_fault(struct vm_fault* vmf)
 
    printk(KERN_DEBUG LOG_PREFIX "address=0x%lx\n", vmf->address - vma->vm_start);
 
-   page = virt_to_page(ptr);
-   get_page(page); // inc refcount to page
-
-   vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~VM_MAYWRITE;
+   vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_MAYWRITE | VM_WRITE);
 
    vmf->page = page;
-
-   //zap_vma_ptes(vmf->vma, 0, vma->vm_end - vma->vm_start);
 
    return 0;
 }

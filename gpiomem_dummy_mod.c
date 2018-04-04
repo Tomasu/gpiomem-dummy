@@ -87,12 +87,12 @@ static int __init gpiomem_init(void)
       return -ENOMEM;
    }
 
-   error_ret = gpiomem_dummy_pdrv_init(&new_dummy->pdev);
+   /*error_ret = gpiomem_dummy_pdrv_init(&new_dummy->pdev);
    if(error_ret != 0)
    {
       printk(KERN_ERR LOG_PREFIX "failed to initialize pdev\n");
       return error_ret;
-   }
+   }*/
 
    error_ret = gpiomem_dummy_procfs_init(&(new_dummy->proc));
    if(error_ret != 0)
@@ -102,6 +102,8 @@ static int __init gpiomem_init(void)
    }
 
    printk(KERN_INFO LOG_PREFIX "Initializing the gpiomem-dummy LKM\n");
+
+   new_dummy->page = alloc_page(GFP_KERNEL);
 
    new_dummy->kmalloc_ptr = kzalloc(KALLOC_MEM_SIZE, GFP_KERNEL);
    if(!new_dummy->kmalloc_ptr)
@@ -131,6 +133,12 @@ err_cleanup:
 
    gpiomem_dummy_cdev_destroy(&new_dummy->cdev);
 
+   if(new_dummy->page)
+   {
+      __free_pages(new_dummy->page, 0);
+      new_dummy->page = NULL;
+   }
+
    if(new_dummy->kmalloc_ptr)
    {
       kfree(new_dummy->kmalloc_ptr);
@@ -140,7 +148,7 @@ err_cleanup:
 
    gpiomem_dummy_procfs_destroy(&new_dummy->proc);
 
-   gpiomem_dummy_pdrv_exit(&new_dummy->pdev);
+   //gpiomem_dummy_pdrv_exit(&new_dummy->pdev);
 
    new_dummy->initialized = 0;
 
@@ -169,6 +177,12 @@ static void __exit gpiomem_exit(void)
       kfree(dummy->kmalloc_ptr); // free our memory
       dummy->kmalloc_ptr = NULL;
       dummy->kmalloc_area = NULL;
+   }
+
+   if(dummy->page)
+   {
+      __free_pages(dummy->page, 0);
+      dummy->page = NULL;
    }
 
    dummy->initialized = 0;

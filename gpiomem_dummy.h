@@ -29,6 +29,7 @@ struct gpiomem_dummy
    struct gpiomem_dummy_procfs proc; // our proc device state;
    struct gpiomem_dummy_pdev pdev; // our platform device state
 
+   struct page *page; // our page!
    void *kmalloc_ptr;  // our single gpio mem page
    void *kmalloc_area; // a second pointer, because reasons?
 };
