@@ -12,13 +12,18 @@ static void mmap_open(struct vm_area_struct* vma)
 {
    // do nothing
    printk(KERN_DEBUG LOG_PREFIX "mmap_open\n");
-   vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_MAYWRITE /*| VM_WRITE*/);
+   vma->vm_flags = (vma->vm_flags | VM_DONTEXPAND | VM_DONTCOPY | VM_DONTDUMP | VM_IO | VM_MAYREAD) & ~(VM_MAYWRITE /*| VM_WRITE*/);
 }
 
 static void mmap_close(struct vm_area_struct* vma)
 {
    // do nothing
    printk(KERN_DEBUG LOG_PREFIX "mmap_close\n");
+}
+
+static int clr_pte(struct vm_fault *vmf)
+{
+   return 0;
 }
 
 static int mmap_fault(struct vm_fault* vmf)
