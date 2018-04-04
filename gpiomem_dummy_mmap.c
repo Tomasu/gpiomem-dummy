@@ -26,6 +26,8 @@ static int mmap_fault(struct vm_fault* vmf)
    struct page *page = NULL;
    struct vm_area_struct *vma = vmf->vma;
 
+   printk(KERN_DEBUG LOG_PREFIX "fault: pgoff=0x%lx addr=0x%lx\n", vmf->pgoff, vmf->address - vma->vm_start);
+
    page = vmf->page;
 
    if(!page)
