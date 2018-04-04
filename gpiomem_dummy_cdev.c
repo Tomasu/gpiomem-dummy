@@ -176,14 +176,11 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
       return(-EINVAL);
    }
 
-   // TODO: check if this is required
-   // locks vma in ram, wont be swapped out
-   vma->vm_flags = (vma->vm_flags | VM_READ | VM_MAYREAD | VM_IO | VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_MIXEDMAP) & ~(VM_MAYWRITE);
-
    vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 
    vma->vm_ops = &gpiomem_dummy_mmap_vmops;
 
+   vma->vm_ops->open(vma);
 
    printk(KERN_INFO LOG_PREFIX "mmap success!\n");
 
