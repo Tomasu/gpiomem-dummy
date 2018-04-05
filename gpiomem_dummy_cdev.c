@@ -7,6 +7,7 @@
 #include <linux/mm.h>
 #include <linux/cdev.h>
 #include <linux/errno.h>
+#include <asm-generic/pgtable.h>
 
 #include "gpiomem_dummy_log.h"
 
@@ -79,28 +80,48 @@ static int gd_cdev_set_page_ro(struct page *page)
    check_error(current->active_mm, "no active mm struct");
 
    pr_info("page_to_pfn");
-   addr = page_to_pfn(page) << PAGE_SHIFT;
+   addr = page_to_phys(page);
    check_error((void*)addr, "invalid pfn");
 
    pr_info("pgd_offset");
    pgd = pgd_offset(current->active_mm, addr);
-   check_error(pgd, "failed to get pgd");
+   if (pgd_none(*pgd) || pgd_bad(*pgd))
+   {
+      pgd_ERROR(*pgd);
+      return -ENOMEM;
+   }
 
    pr_info("p4d_offset");
    p4d = p4d_offset(pgd, addr);
-   check_error(p4d, "failed to get p4d");
+   if (p4d_none(*p4d) || p4d_bad(*p4d))
+   {
+      p4d_ERROR(*p4d);
+      return -ENOMEM;
+   }
 
    pr_info("pud_offset");
    pud = pud_offset(p4d, addr);
-   check_error(pud, "failed to get pud");
+   if (pud_none(*pud) || pud_bad(*pud))
+   {
+      pud_ERROR(*pud);
+      return -ENOMEM;
+   }
 
    pr_info("pmd_offset");
    pmd = pmd_offset(pud, addr);
-   check_error(pmd, "failed to get pmd");
+   if (pmd_none(*pmd) || pmd_bad(*pmd))
+   {
+      pmd_ERROR(*pmd);
+      return -ENOMEM;
+   }
 
    pr_info("pte_offset_map");
    pte = pte_offset_map(pmd, addr);
-   check_error(pte, "failed to get pte");
+   if (pte_none(*pte))
+   {
+      pte_ERROR(*pte);
+      return -ENOMEM;
+   }
 
    tmp_pte = *pte;
 
