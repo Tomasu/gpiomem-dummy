@@ -85,7 +85,7 @@ static int gd_cdev_set_page_ro(struct page *page)
 
    pr_info("pgd_offset");
    pgd = pgd_offset(current->active_mm, addr);
-   if (pgd_none(*pgd) || pgd_bad(*pgd))
+   if (pgd_none(*pgd))
    {
       pgd_ERROR(*pgd);
       return -ENOMEM;
@@ -93,7 +93,7 @@ static int gd_cdev_set_page_ro(struct page *page)
 
    pr_info("p4d_offset");
    p4d = p4d_offset(pgd, addr);
-   if (p4d_none(*p4d) || p4d_bad(*p4d))
+   if (p4d_none(*p4d))
    {
       p4d_ERROR(*p4d);
       return -ENOMEM;
@@ -101,7 +101,7 @@ static int gd_cdev_set_page_ro(struct page *page)
 
    pr_info("pud_offset");
    pud = pud_offset(p4d, addr);
-   if (pud_none(*pud) || pud_bad(*pud))
+   if (pud_none(*pud))
    {
       pud_ERROR(*pud);
       return -ENOMEM;
@@ -109,7 +109,7 @@ static int gd_cdev_set_page_ro(struct page *page)
 
    pr_info("pmd_offset");
    pmd = pmd_offset(pud, addr);
-   if (pmd_none(*pmd) || pmd_bad(*pmd))
+   if (pmd_none(*pmd))
    {
       pmd_ERROR(*pmd);
       return -ENOMEM;
