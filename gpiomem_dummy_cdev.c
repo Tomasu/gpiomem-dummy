@@ -18,6 +18,25 @@ static int dev_open(struct inode *inodep, struct file *filep);
 static int dev_mmap(struct file* file, struct vm_area_struct* vma);
 static int dev_release(struct inode *inodep, struct file *filep);
 
+static int cdev_writepage(struct page *page, struct writeback_control *wbc);
+static int cdev_readpage(struct file *, struct page *);
+
+/* Write back some dirty pages from this mapping. */
+static int cdev_writepages(struct address_space *, struct writeback_control *);
+
+/* Set a page dirty.  Return true if this dirtied it */
+static int cdev_set_page_dirty(struct page *page);
+
+static int cdev_readpages(struct file *filp, struct address_space *mapping,
+                   struct list_head *pages, unsigned nr_pages);
+
+static int cdev_write_begin(struct file *, struct address_space *mapping,
+                     loff_t pos, unsigned len, unsigned flags,
+                     struct page **pagep, void **fsdata);
+static int cdev_write_end(struct file *, struct address_space *mapping,
+                   loff_t pos, unsigned len, unsigned copied,
+                   struct page *page, void *fsdata);
+
 /** @brief Devices are represented as file structure in the kernel. The file_operations structure from
  *  /linux/fs.h lists the callback functions that you wish to associated with your file operations
  *  using a C99 syntax structure. char devices usually implement open, read, write and release calls
@@ -29,6 +48,17 @@ static struct file_operations cdev_fops =
    .release = dev_release,
    .mmap = dev_mmap,
    .llseek = no_llseek,
+};
+
+struct address_space_operations cdev_aops =
+{
+   .writepage = cdev_writepage,
+   .readpage = cdev_readpage,
+   .writepages = cdev_writepages,
+   .set_page_dirty = cdev_set_page_dirty,
+   .readpages = cdev_readpages,
+   .write_begin = cdev_write_begin,
+   .write_end = cdev_write_end
 };
 
 int gpiomem_dummy_cdev_init(struct gpiomem_dummy_cdev *cdev)
@@ -176,6 +206,8 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
       return(-EINVAL);
    }
 
+   vma->vm_file->f_mapping->a_ops = &cdev_aops;
+
    vma->vm_ops = &gpiomem_dummy_mmap_vmops;
 
    vma->vm_ops->open(vma);
@@ -198,4 +230,51 @@ static int dev_release(struct inode *inodep, struct file *filep)
    return 0;
 }
 
+int cdev_writepage(struct page *page, struct writeback_control *wbc)
+{
+   printk(KERN_DEBUG LOG_PREFIX "writepage\n");
+   return 0;
+}
 
+int cdev_readpage(struct file *fp, struct page *pg)
+{
+   printk(KERN_DEBUG LOG_PREFIX "readpage\n");
+   return 0;
+}
+
+/* Write back some dirty pages from this mapping. */
+int cdev_writepages(struct address_space *as, struct writeback_control *wbc)
+{
+   printk(KERN_DEBUG LOG_PREFIX "writepages\n");
+   return 0;
+}
+
+/* Set a page dirty.  Return true if this dirtied it */
+int cdev_set_page_dirty(struct page *page)
+{
+   printk(KERN_DEBUG LOG_PREFIX "set_page_dirty\n");
+   return 0;
+}
+
+int cdev_readpages(struct file *filp, struct address_space *mapping,
+                 struct list_head *pages, unsigned nr_pages)
+{
+   printk(KERN_DEBUG LOG_PREFIX "readpages\n");
+   return 0;
+}
+
+int cdev_write_begin(struct file *filp, struct address_space *mapping,
+                   loff_t pos, unsigned len, unsigned flags,
+                   struct page **pagep, void **fsdata)
+{
+   printk(KERN_DEBUG LOG_PREFIX "write_begin\n");
+   return 0;
+}
+
+int cdev_write_end(struct file *filp, struct address_space *mapping,
+                 loff_t pos, unsigned len, unsigned copied,
+                 struct page *page, void *fsdata)
+{
+   printk(KERN_DEBUG LOG_PREFIX "write_end\n");
+   return 0;
+}

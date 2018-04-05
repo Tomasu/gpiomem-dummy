@@ -42,7 +42,7 @@ static int mmap_fault(struct vm_fault* vmf)
    pmd_t *pmd;
    pte_t *pte;
 
-   printk(KERN_DEBUG LOG_PREFIX "fault: pgoff=0x%lx addr=0x%lx pte=%p\n", vmf->pgoff, vmf->address - vma->vm_start, vmf->prealloc_pte);
+   printk(KERN_DEBUG LOG_PREFIX "fault: pgoff=0x%lx addr=0x%lx pte=%p\n", vmf->pgoff, vmf->address - vma->vm_start, vmf->pte);
 
 
 
@@ -143,6 +143,7 @@ void map_pages(struct vm_fault *vmf,
                   pgoff_t start_pgoff, pgoff_t end_pgoff)
 {
    printk(KERN_DEBUG LOG_PREFIX "map_pages! start=%lu end=%lu\n", start_pgoff, end_pgoff);
+
 }
 
 /* notification that a previously read-only page is about to become
