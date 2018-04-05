@@ -9,7 +9,7 @@
 #undef pr_fmt
 #endif
 
-#define pr_fmt(fmt) __BASE_FILE__ ":" LOG_STRINGIFY_(__FUNCTION__) ":" LOG_STRINGIFY_(__LINE__) ": " fmt "\n"
+#define pr_fmt(fmt) __BASE_FILE__ ":" LOG_STRINGIFY_(__LINE__) ": " fmt "\n"
 
 #include <linux/printk.h>
 
