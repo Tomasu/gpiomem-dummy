@@ -255,31 +255,8 @@ int cdev_writepages(struct address_space *as, struct writeback_control *wbc)
 /* Set a page dirty.  Return true if this dirtied it */
 int cdev_set_page_dirty(struct page *page)
 {
-   struct vm_area_struct *vma = NULL;
-
    printk(KERN_DEBUG LOG_PREFIX "set_page_dirty\n");
-   //page->flags
 
-   SetPageDirty(page);
-   return 1;
-
-   //if (!PageDirty(page))
-   //   return !TestSetPageDirty(page);
-
-   if(!current || !current->mm)
-   {
-      printk(KERN_DEBUG LOG_PREFIX "no current or mm\n");
-      return 0;
-   }
-
-   vma = find_vma(current->mm, page_to_phys(page));
-   if(!vma)
-   {
-      printk(KERN_DEBUG LOG_PREFIX "vma not found :(\n");
-      return 0;
-   }
-
-   zap_vma_ptes(vma, page_to_phys(page), 1);
    return 0;
 }
 
