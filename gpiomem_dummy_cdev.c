@@ -18,6 +18,9 @@ static int dev_open(struct inode *inodep, struct file *filep);
 static int dev_mmap(struct file* file, struct vm_area_struct* vma);
 static int dev_release(struct inode *inodep, struct file *filep);
 
+static ssize_t dev_read(struct file *, char __user *, size_t, loff_t *);
+static ssize_t dev_write(struct file *, const char __user *, size_t, loff_t *);
+
 static int cdev_writepage(struct page *page, struct writeback_control *wbc);
 static int cdev_readpage(struct file *, struct page *);
 
@@ -48,6 +51,8 @@ static struct file_operations cdev_fops =
    .release = dev_release,
    .mmap = dev_mmap,
    .llseek = no_llseek,
+   .read = dev_read,
+   .write = dev_write
 };
 
 struct address_space_operations cdev_aops =
@@ -228,6 +233,19 @@ static int dev_release(struct inode *inodep, struct file *filep)
 {
    printk(KERN_INFO LOG_PREFIX "Device successfully closed\n");
    return 0;
+}
+
+static ssize_t dev_read(struct file *filp, char __user *data, size_t len, loff_t *offset)
+{
+   printk(KERN_DEBUG LOG_PREFIX "read!\n");
+
+   return len;
+}
+
+static ssize_t dev_write(struct file *filp, const char __user *data, size_t len, loff_t *offset)
+{
+   printk(KERN_DEBUG LOG_PREFIX "write!\n");
+   return len;
 }
 
 int cdev_writepage(struct page *page, struct writeback_control *wbc)
