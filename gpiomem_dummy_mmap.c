@@ -147,8 +147,22 @@ int mremap(struct vm_area_struct * area)
 void map_pages(struct vm_fault *vmf,
                   pgoff_t start_pgoff, pgoff_t end_pgoff)
 {
+   pgd_t *pgd;
+   p4d_t *p4d;
+   pud_t *pud;
+   pmd_t *pmd;
+   pte_t *pte;
+   unsigned long addr;
+
    printk(KERN_DEBUG LOG_PREFIX "map_pages! start=%lu end=%lu\n", start_pgoff, end_pgoff);
 
+   addr = vmf->address;
+
+   pgd = pgd_offset(vmf->vma->vm_mm, addr);
+   p4d = p4d_offset(pgd, addr);
+   pud = pud_offset(p4d, addr);
+   pmd = pmd_offset(pud, addr);
+   vmf->pte = pte_alloc_map(vmf->vma->vm_mm, pmd, addr);
 }
 
 /* notification that a previously read-only page is about to become
