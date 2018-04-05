@@ -1,7 +1,10 @@
 #ifndef GPIOMEM_DUMMY_CDEV_H_GUARD
 #define GPIOMEM_DUMMY_CDEV_H_GUARD
 
+#include "gpiomem_dummy_log.h"
+
 #include <linux/device.h>
+#include <linux/mm.h>
 
 struct gpiomem_dummy_cdev
 {
@@ -10,10 +13,11 @@ struct gpiomem_dummy_cdev
    int times_opened;
    struct class *clss;
    struct device *dev;
+   struct page *page;
 };
 
-extern int gpiomem_dummy_cdev_init(struct gpiomem_dummy_cdev *cdev);
-extern void gpiomem_dummy_cdev_destroy(struct gpiomem_dummy_cdev *cdev);
+extern int gd_cdev_init(struct gpiomem_dummy_cdev *cdev);
+extern void gd_cdev_destroy(struct gpiomem_dummy_cdev *cdev);
 
 extern struct address_space_operations cdev_aops;
 

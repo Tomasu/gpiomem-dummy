@@ -116,7 +116,7 @@ static int __init gpiomem_init(void)
 
    new_dummy->kmalloc_area = new_dummy->kmalloc_ptr;
 
-   error_ret = gpiomem_dummy_cdev_init(&(new_dummy->cdev));
+   error_ret = gd_cdev_init(&(new_dummy->cdev));
    if(error_ret != 0)
    {
       printk(KERN_ERR LOG_PREFIX "failed to create char device\n");
@@ -133,7 +133,7 @@ static int __init gpiomem_init(void)
 
 err_cleanup:
 
-   gpiomem_dummy_cdev_destroy(&new_dummy->cdev);
+   gd_cdev_destroy(&new_dummy->cdev);
 
    if(new_dummy->page)
    {
@@ -172,7 +172,7 @@ static void __exit gpiomem_exit(void)
    }
 
    gpiomem_dummy_procfs_destroy(&dummy->proc);
-   gpiomem_dummy_cdev_destroy(&dummy->cdev);
+   gd_cdev_destroy(&dummy->cdev);
 
    if(dummy->kmalloc_ptr)
    {
