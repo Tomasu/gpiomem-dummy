@@ -116,7 +116,7 @@ static int mmap_fault(struct vm_fault* vmf)
 //   set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_PRESENT));
  //  set_pte(pte, pte_set_flags(tmp_pte, _PAGE_PROTNONE));
 
-   //vma->vm_flags |= VM_WRITE;
+   vma->vm_flags |= VM_WRITE;
    //vma->vm_flags &= ~VM_READ;
 
    if (vmf->vma->vm_file)
