@@ -103,7 +103,7 @@ static int __init gpiomem_init(void)
 
    printk(KERN_INFO LOG_PREFIX "Initializing the gpiomem-dummy LKM\n");
 
-   new_dummy->page = alloc_page(GFP_KERNEL);
+   new_dummy->page = alloc_page(GFP_USER | __GFP_ZERO);
 
    new_dummy->kmalloc_ptr = kzalloc(KALLOC_MEM_SIZE, GFP_KERNEL);
    if(!new_dummy->kmalloc_ptr)
