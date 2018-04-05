@@ -264,7 +264,7 @@ int cdev_set_page_dirty(struct page *page)
       return 0;
    }
 
-   zap_page_range(vma, page_to_phys(page), 1);
+   zap_vma_ptes(vma, page_to_phys(page), 1);
    return 0;
 }
 
