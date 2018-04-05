@@ -186,7 +186,13 @@ struct address_space_operations gd_cdev_aops =
 
 int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
 {
-   int error_ret = -1;
+   struct page *page = NULL;
+   unsigned long *pdata = NULL;
+   int cdev_major = -1;
+   struct class *clss = NULL;
+   int dev_id = -1;
+   struct device *dev = NULL;
+   int error_ret = -ENODEV;
 
    pr_info("init");
    check_error(cdev, "Null cdev?");
@@ -194,10 +200,10 @@ int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
    memset(cdev, 0, sizeof(*cdev));
 
    pr_info("alloc page");
-   struct page *page = alloc_page(GFP_USER | __GFP_ZERO);
+   page = alloc_page(GFP_USER | __GFP_ZERO);
    check_error(page, "failed to allocate page");
 
-   unsigned long *pdata = (unsigned long*)page_to_virt(page);
+   pdata = (unsigned long*)page_to_virt(page);
    memset(pdata, 0, PAGE_SIZE);
 
    pr_info("set_page_ro");
@@ -206,21 +212,21 @@ int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
 
    pr_info("register chrdev");
    // Try to dynamically allocate a major number for the device -- more difficult but worth it
-   int cdev_major = register_chrdev(0, DEVICE_NAME, &gd_cdev_fops);
+   cdev_major = register_chrdev(0, DEVICE_NAME, &gd_cdev_fops);
    check_state_cleanup(cdev_major >= 0, cdev_major, "failed to register chrdev major number");
 
    pr_info("registered major %d", cdev_major);
 
    // Register the device class
-   struct class *clss = class_create(THIS_MODULE, CLASS_NAME);
+   clss = class_create(THIS_MODULE, CLASS_NAME);
    check_error_cleanup(clss, "failed to create class");
 
    pr_info("registered device class");
 
    // Register the device driver
-   int dev_id = MKDEV(cdev_major, 0);
+   dev_id = MKDEV(cdev_major, 0);
 
-   struct device *dev = device_create(clss, NULL, dev_id, cdev, DEVICE_NAME);
+   dev = device_create(clss, NULL, dev_id, cdev, DEVICE_NAME);
    check_error_cleanup(dev, "failed to create device");
 
    cdev->page = page;
