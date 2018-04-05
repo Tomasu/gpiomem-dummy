@@ -260,6 +260,7 @@ int cdev_set_page_dirty(struct page *page)
    printk(KERN_DEBUG LOG_PREFIX "set_page_dirty\n");
    //page->flags
 
+   SetPageDirty(page);
    return 1;
 
    //if (!PageDirty(page))
