@@ -123,7 +123,7 @@ static int __init gpiomem_init(void)
       goto err_cleanup;
    }
 
-   new_dummy->page->mapping->a_ops = &cdev_aops;
+   //new_dummy->page->mapping->a_ops = &cdev_aops;
 
    new_dummy->initialized = 1;
 
