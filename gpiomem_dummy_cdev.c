@@ -77,14 +77,14 @@ static int gd_cdev_set_page_ro(struct page *page)
 
    check_error(page, "invalid page");
    check_error(current, "no current task_struct");
-   check_error(current->active_mm, "no active mm struct");
+   check_error(current->mm, "no mm struct");
 
    pr_info("page_to_pfn");
-   addr = page_to_phys(page);
+   addr = page_to_virt(page);
    check_error((void*)addr, "invalid pfn");
 
    pr_info("pgd_offset");
-   pgd = pgd_offset(current->active_mm, addr);
+   pgd = pgd_offset(current->mm, addr);
    if (pgd_none(*pgd))
    {
       pgd_ERROR(*pgd);
