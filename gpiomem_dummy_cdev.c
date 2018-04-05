@@ -232,8 +232,6 @@ int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
    dev = device_create(clss, NULL, dev_id, cdev, DEVICE_NAME);
    check_error_cleanup(dev, "failed to create device");
 
-   check_val_cleanup(device_add(dev), "failed to add device");
-
    cdevp = &cdev->cdev;
    cdev_init(cdevp, &gd_cdev_fops);
    cdevp->owner = THIS_MODULE;
@@ -288,8 +286,6 @@ void gd_cdev_destroy(struct gpiomem_dummy_cdev *cdev)
    {
       if(cdev->dev && !IS_ERR(cdev->dev))
       {
-         put_device(cdev->dev);
-
          device_destroy(cdev->clss, cdev->dev_id);
          cdev->dev_id = 0;
          cdev->dev = NULL;
