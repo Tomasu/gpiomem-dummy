@@ -257,7 +257,7 @@ int cdev_set_page_dirty(struct page *page)
 {
    printk(KERN_DEBUG LOG_PREFIX "set_page_dirty\n");
 
-   unmap_mapping_range(page->mapping, 0, PAGE_SIZE, 1);
+   //unmap_mapping_range(page->mapping, 0, PAGE_SIZE, 1);
 
    //page->mapping
 
