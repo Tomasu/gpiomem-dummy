@@ -17,7 +17,6 @@ static void mmap_open(struct vm_area_struct* vma)
    vma->vm_flags |= VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_SHARED | VM_LOCKED | VM_IO;// | VM_WRITE | VM_IO;
    vma->vm_flags &= ~(VM_MAYWRITE /*| VM_WRITE*/);
    //vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
-   dummy_get()->page->mapping->a_ops = &cdev_aops;
 }
 
 static void mmap_close(struct vm_area_struct* vma)
@@ -120,10 +119,10 @@ static int mmap_fault(struct vm_fault* vmf)
    vma->vm_flags |= VM_WRITE;
    //vma->vm_flags &= ~VM_READ;
 
-   //if (vmf->vma->vm_file)
-   //   page->mapping = vmf->vma->vm_file->f_mapping;
-   //else
-   //   printk(KERN_ERR "no mapping available\n");
+   if (vmf->vma->vm_file)
+      page->mapping = vmf->vma->vm_file->f_mapping;
+   else
+      printk(KERN_ERR "no mapping available\n");
 
    //vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 

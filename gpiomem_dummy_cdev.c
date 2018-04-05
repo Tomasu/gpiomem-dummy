@@ -206,7 +206,7 @@ static int dev_mmap(struct file* file __attribute__((unused)), struct vm_area_st
       return(-EINVAL);
    }
 
-   //vma->vm_file->f_mapping->a_ops = &cdev_aops;
+   vma->vm_file->f_mapping->a_ops = &cdev_aops;
 
    vma->vm_ops = &gpiomem_dummy_mmap_vmops;
 
