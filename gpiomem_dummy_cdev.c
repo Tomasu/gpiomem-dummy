@@ -257,7 +257,11 @@ int cdev_set_page_dirty(struct page *page)
 {
    printk(KERN_DEBUG LOG_PREFIX "set_page_dirty\n");
 
-   return 0;
+   unmap_mapping_range(page->mapping, 0, PAGE_SIZE, 1);
+
+   //page->mapping
+
+   return 1;
 }
 
 int cdev_readpages(struct file *filp, struct address_space *mapping,
