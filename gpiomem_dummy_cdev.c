@@ -72,32 +72,42 @@ static int gd_cdev_set_page_ro(struct page *page)
 
    unsigned long addr = 0;
 
+   pr_info("check args");
+
    check_error(page, "invalid page");
    check_error(current, "no current task_struct");
    check_error(current->active_mm, "no active mm struct");
 
+   pr_info("page_to_pfn");
    addr = page_to_pfn(page) << PAGE_SHIFT;
    check_error((void*)addr, "invalid pfn");
 
+   pr_info("pgd_offset");
    pgd = pgd_offset(current->active_mm, addr);
    check_error(pgd, "failed to get pgd");
 
+   pr_info("p4d_offset");
    p4d = p4d_offset(pgd, addr);
    check_error(p4d, "failed to get p4d");
 
+   pr_info("pud_offset");
    pud = pud_offset(p4d, addr);
    check_error(pud, "failed to get pud");
 
+   pr_info("pmd_offset");
    pmd = pmd_offset(pud, addr);
    check_error(pmd, "failed to get pmd");
 
+   pr_info("pte_offset_map");
    pte = pte_offset_map(pmd, addr);
    check_error(pte, "failed to get pte");
 
    tmp_pte = *pte;
 
+   pr_info("set pte");
    set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_RW));
 
+   pr_info("ret");
    return 0;
 }
 
@@ -157,16 +167,20 @@ int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
 {
    int error_ret = -1;
 
+   pr_info("init");
    check_error(cdev, "Null cdev?");
 
    memset(cdev, 0, sizeof(*cdev));
 
+   pr_info("alloc page");
    struct page *page = alloc_page(GFP_USER | __GFP_ZERO);
    check_error(page, "failed to allocate page");
 
+   pr_info("set_page_ro");
    error_ret = gd_cdev_set_page_ro(page);
    check_val_cleanup(error_ret, "failed to set page ro");
 
+   pr_info("register chrdev");
    // Try to dynamically allocate a major number for the device -- more difficult but worth it
    int cdev_major = register_chrdev(0, DEVICE_NAME, &gd_cdev_fops);
    check_state_cleanup(cdev_major >= 0, cdev_major, "failed to register chrdev major number");
