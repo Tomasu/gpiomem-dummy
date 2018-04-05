@@ -265,7 +265,7 @@ int cdev_set_page_dirty(struct page *page)
 
    for(i = 0; i < PAGE_SIZE; i++)
    {
-      if(*data) num++;
+      if(data[i]) num++;
    }
 
    printk(KERN_DEBUG LOG_PREFIX "set_page_dirty: changes=%d\n", num);
