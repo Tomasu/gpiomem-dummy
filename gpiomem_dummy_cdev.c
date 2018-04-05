@@ -249,6 +249,9 @@ int cdev_writepages(struct address_space *as, struct writeback_control *wbc)
    return 0;
 }
 
+//[31111.087184] BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
+//[31111.088182] IP: vmacache_find+0x23/0xa0
+
 /* Set a page dirty.  Return true if this dirtied it */
 int cdev_set_page_dirty(struct page *page)
 {
@@ -256,6 +259,12 @@ int cdev_set_page_dirty(struct page *page)
 
    printk(KERN_DEBUG LOG_PREFIX "set_page_dirty\n");
    //page->flags
+
+   if(!current || !current->mm)
+   {
+      printk(KERN_DEBUG LOG_PREFIX "no current or mm\n");
+      return 0;
+   }
 
    vma = find_vma(current->mm, page_to_phys(page));
    if(!vma)
