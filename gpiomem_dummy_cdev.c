@@ -261,7 +261,7 @@ int cdev_set_page_dirty(struct page *page)
 
    //page->mapping
 
-   return 1;
+   return 0;
 }
 
 int cdev_readpages(struct file *filp, struct address_space *mapping,
