@@ -260,6 +260,11 @@ int cdev_set_page_dirty(struct page *page)
    printk(KERN_DEBUG LOG_PREFIX "set_page_dirty\n");
    //page->flags
 
+   return 1;
+
+   //if (!PageDirty(page))
+   //   return !TestSetPageDirty(page);
+
    if(!current || !current->mm)
    {
       printk(KERN_DEBUG LOG_PREFIX "no current or mm\n");
