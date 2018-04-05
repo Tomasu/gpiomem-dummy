@@ -269,11 +269,10 @@ int cdev_set_page_dirty(struct page *page)
       data[i] = 0;
    }
 
-
    printk(KERN_DEBUG LOG_PREFIX "set_page_dirty: changes=%d\n", num);
    //page->mapping
 
-   return 0;
+   return !num;
 }
 
 int cdev_readpages(struct file *filp, struct address_space *mapping,
