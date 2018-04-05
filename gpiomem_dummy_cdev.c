@@ -126,7 +126,10 @@ static int gd_cdev_set_page_ro(struct page *page)
    tmp_pte = *pte;
 
    pr_info("set pte");
-   set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_RW));
+   set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_RW | _PAGE_PRESENT));
+
+   tmp_pte = *pte;
+   set_pte(pte, pte_set_flags(tmp_pte, _PAGE_PROTNONE | _PAGE_ACCESSED));
 
    pr_info("ret");
    return 0;
