@@ -255,10 +255,20 @@ int cdev_writepages(struct address_space *as, struct writeback_control *wbc)
 /* Set a page dirty.  Return true if this dirtied it */
 int cdev_set_page_dirty(struct page *page)
 {
+   int i = 0;
+   int num = 0;
+   char *data = page_to_virt(page);
+
    printk(KERN_DEBUG LOG_PREFIX "set_page_dirty\n");
 
    //unmap_mapping_range(page->mapping, 0, PAGE_SIZE, 1);
 
+   for(i = 0; i < PAGE_SIZE; i++)
+   {
+      if(*data) num++;
+   }
+
+   printk(KERN_DEBUG LOG_PREFIX "set_page_dirty: changes=%d\n", num);
    //page->mapping
 
    return 0;
