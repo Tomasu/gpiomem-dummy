@@ -119,10 +119,10 @@ static int mmap_fault(struct vm_fault* vmf)
    vma->vm_flags |= VM_WRITE;
    //vma->vm_flags &= ~VM_READ;
 
-   if (vmf->vma->vm_file)
-      page->mapping = vmf->vma->vm_file->f_mapping;
-   else
-      printk(KERN_ERR "no mapping available\n");
+   //if (vmf->vma->vm_file)
+   //   page->mapping = vmf->vma->vm_file->f_mapping;
+   //else
+   //   printk(KERN_ERR "no mapping available\n");
 
    vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 
