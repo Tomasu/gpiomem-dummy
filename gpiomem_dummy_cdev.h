@@ -3,16 +3,16 @@
 
 #include "gpiomem_dummy_log.h"
 
+#include <linux/cdev.h>
 #include <linux/device.h>
 #include <linux/mm.h>
 
 struct gpiomem_dummy_cdev
 {
+   struct cdev cdev;
    int major_number;
    int dev_id;
    int times_opened;
-   struct class *clss;
-   struct device *dev;
    struct page *page;
 };
 

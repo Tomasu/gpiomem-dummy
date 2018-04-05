@@ -68,7 +68,14 @@ static int mmap_fault(struct vm_fault* vmf)
 
    if(!page)
    {
-      page = dummy_get()->page;
+      struct gpiomem_dummy_cdev *cdev = vmf->vma->vm_private_data;
+      if (!cdev)
+      {
+         pr_err("private data is null :(");
+         return VM_FAULT_SIGBUS;
+      }
+
+      page = cdev->page;
    }
 
    if(!page || IS_ERR(page))

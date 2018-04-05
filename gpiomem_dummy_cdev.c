@@ -80,7 +80,7 @@ static int gd_cdev_set_page_ro(struct page *page)
    check_error(current->mm, "no mm struct");
 
    pr_info("page_to_pfn");
-   addr = page_to_virt(page);
+   addr = (unsigned long)page_to_virt(page);
    check_error((void*)addr, "invalid pfn");
 
    pr_info("pgd_offset");
@@ -189,9 +189,9 @@ int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
    struct page *page = NULL;
    unsigned long *pdata = NULL;
    int cdev_major = -1;
-   struct class *clss = NULL;
+   struct cdev *cdevp = NULL;
    int dev_id = -1;
-   struct device *dev = NULL;
+   dev_t devt;
    int error_ret = -ENODEV;
 
    pr_info("init");
@@ -212,41 +212,34 @@ int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
 
    pr_info("register chrdev");
    // Try to dynamically allocate a major number for the device -- more difficult but worth it
-   cdev_major = register_chrdev(0, DEVICE_NAME, &gd_cdev_fops);
-   check_state_cleanup(cdev_major >= 0, cdev_major, "failed to register chrdev major number");
+   error_ret = alloc_chrdev_region(&devt, 0, 1, DEVICE_NAME);
+   check_val_cleanup(error_ret, "failed to register chrdev region");
+   cdev_major = MAJOR(devt);
 
    pr_info("registered major %d", cdev_major);
-
-   // Register the device class
-   clss = class_create(THIS_MODULE, CLASS_NAME);
-   check_error_cleanup(clss, "failed to create class");
-
-   pr_info("registered device class");
 
    // Register the device driver
    dev_id = MKDEV(cdev_major, 0);
 
-   dev = device_create(clss, NULL, dev_id, cdev, DEVICE_NAME);
-   check_error_cleanup(dev, "failed to create device");
+   cdevp = &cdev->cdev;
+   cdev_init(cdevp, &gd_cdev_fops);
+   cdevp->owner = THIS_MODULE;
+   error_ret = cdev_add(cdevp, dev_id, 1);
+   check_val_cleanup(error_ret, "failed to add chardev");
+
+   pr_info("created chardev");
 
    cdev->page = page;
    cdev->major_number = cdev_major;
-   cdev->clss = clss;
    cdev->dev_id = dev_id;
-   cdev->dev = dev;
 
    pr_info("device created");
    return 0;
 
 err_cleanup:
-   if(dev && !IS_ERR(dev))
+   if(cdevp && !IS_ERR(cdevp))
    {
-      device_destroy(clss, dev_id);
-   }
-
-   if(clss && !IS_ERR(clss))
-   {
-      class_destroy(clss);
+      cdev_del(cdevp);
    }
 
    if(cdev_major)
@@ -264,23 +257,12 @@ err_cleanup:
 
 void gd_cdev_destroy(struct gpiomem_dummy_cdev *cdev)
 {
-   if(cdev->dev)
-   {
-      device_destroy(cdev->clss, cdev->dev_id);
-      cdev->dev_id = 0;
-      cdev->dev = NULL;
-   }
-
-   if(cdev->clss)
-   {
-      class_unregister(cdev->clss);                          // unregister the device class
-      class_destroy(cdev->clss);                             // remove the device class
-      cdev->clss= NULL;
-   }
+   cdev_del(&cdev->cdev);
 
    if(cdev->major_number)
    {
-      unregister_chrdev(cdev->major_number, DEVICE_NAME);             // unregister the major number
+      unregister_chrdev_region(cdev->dev_id, 1); // unregister the major number
+      cdev->dev_id = 0;
       cdev->major_number = 0;
    }
 
@@ -293,12 +275,12 @@ void gd_cdev_destroy(struct gpiomem_dummy_cdev *cdev)
 
 inline static struct gpiomem_dummy_cdev *inode_to_cdev(struct inode *ip)
 {
-   return dev_get_drvdata(inode_to_cdev(ip)->dev);
+   return container_of(ip->i_cdev, struct gpiomem_dummy_cdev, cdev);
 }
 
 inline static struct gpiomem_dummy_cdev *file_to_cdev(struct file *fp)
 {
-   return inode_to_cdev(fp->f_inode);
+   return fp->private_data;
 }
 
 /** @brief The device open function that is called each time the device is opened
@@ -314,6 +296,8 @@ static int gd_cdev_open(struct inode *inodep, struct file *filep)
       pr_err("cdev not found?!");
       return -ENODEV;
    }
+
+   filep->private_data = cdev;
 
    cdev->times_opened++;
 
