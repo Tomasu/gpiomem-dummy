@@ -457,7 +457,7 @@ int gd_cdev_set_page_dirty(struct page *page)
    for(i = 0; i < PAGE_SIZE; i++)
    {
       if(data[i]) num++;
-      data[i] = 0;
+      //data[i] = 0;
    }
 
    pr_info("changes=%d", num);
