@@ -130,7 +130,7 @@ static int mmap_fault(struct vm_fault* vmf)
    get_page(page);
    lock_page(page);
 
-   return VM_FAULT_LOCKED;
+   return VM_FAULT_LOCKED | VM_FAULT_NEEDDSYNC;
 }
 
 int split(struct vm_area_struct * area, unsigned long addr)
