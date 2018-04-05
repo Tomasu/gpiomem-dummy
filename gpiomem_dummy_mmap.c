@@ -162,7 +162,7 @@ void map_pages(struct vm_fault *vmf,
    p4d = p4d_offset(pgd, addr);
    pud = pud_offset(p4d, addr);
    pmd = pmd_offset(pud, addr);
-   vmf->pte = pte_alloc_map(vmf->vma->vm_mm, pmd, addr);
+   vmf->pte = pte_offset_map(pmd, addr);
 }
 
 /* notification that a previously read-only page is about to become
