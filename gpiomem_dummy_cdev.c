@@ -190,6 +190,8 @@ int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
    unsigned long *pdata = NULL;
    int cdev_major = -1;
    struct cdev *cdevp = NULL;
+   struct class *clss = NULL;
+   struct device *dev = NULL;
    int dev_id = -1;
    dev_t devt;
    int error_ret = -ENODEV;
@@ -221,6 +223,17 @@ int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
    // Register the device driver
    dev_id = MKDEV(cdev_major, 0);
 
+   // register our class/device so the kernel will auto create /dev entries
+   clss = class_create(THIS_MODULE, CLASS_NAME);
+   check_error_cleanup(clss, "failed to create class");
+
+   pr_info("registered device class");
+
+   dev = device_create(clss, NULL, dev_id, cdev, DEVICE_NAME);
+   check_error_cleanup(dev, "failed to create device");
+
+   check_val_cleanup(device_add(dev), "failed to add device");
+
    cdevp = &cdev->cdev;
    cdev_init(cdevp, &gd_cdev_fops);
    cdevp->owner = THIS_MODULE;
@@ -232,6 +245,8 @@ int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
    cdev->page = page;
    cdev->major_number = cdev_major;
    cdev->dev_id = dev_id;
+   cdev->clss = clss;
+   cdev->dev = dev;
 
    pr_info("device created");
    return 0;
@@ -240,6 +255,16 @@ err_cleanup:
    if(cdevp && !IS_ERR(cdevp))
    {
       cdev_del(cdevp);
+   }
+
+   if (clss && !IS_ERR(clss))
+   {
+      if (dev && !IS_ERR(dev))
+      {
+         device_destroy(clss, dev_id);
+      }
+
+      class_destroy(clss);
    }
 
    if(cdev_major)
@@ -258,6 +283,21 @@ err_cleanup:
 void gd_cdev_destroy(struct gpiomem_dummy_cdev *cdev)
 {
    cdev_del(&cdev->cdev);
+
+   if (cdev->clss && !IS_ERR(cdev->clss))
+   {
+      if(cdev->dev && !IS_ERR(cdev->dev))
+      {
+         put_device(cdev->dev);
+
+         device_destroy(cdev->clss, cdev->dev_id);
+         cdev->dev_id = 0;
+         cdev->dev = NULL;
+      }
+
+      class_destroy(cdev->clss); // remove the device class
+      cdev->clss = NULL;
+   }
 
    if(cdev->major_number)
    {
