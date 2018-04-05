@@ -14,9 +14,9 @@ static void mmap_open(struct vm_area_struct* vma)
    printk(KERN_DEBUG LOG_PREFIX "mmap_open\n");
 
    //vma->vm_flags = (vma->vm_flags | VM_DONTEXPAND | VM_DONTCOPY | VM_DONTDUMP | VM_IO | VM_MAYREAD | VM_MIXEDMAP);
-   vma->vm_flags |= VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_IO | VM_PFNMAP | VM_MAYWRITE;// | VM_WRITE | VM_IO;
-   vma->vm_flags &= ~(/*VM_MAYWRITE | */VM_WRITE);
-   vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
+   vma->vm_flags |= VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_IO | VM_MIXEDMAP | VM_MAYWRITE;// | VM_WRITE | VM_IO;
+   //vma->vm_flags &= ~(/*VM_MAYWRITE | */VM_WRITE);
+   //vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 }
 
 static void mmap_close(struct vm_area_struct* vma)
@@ -128,9 +128,9 @@ static int mmap_fault(struct vm_fault* vmf)
 
    vmf->page = page;
    get_page(page);
-   lock_page(page);
+   //lock_page(page);
 
-   return VM_FAULT_LOCKED | VM_FAULT_WRITE;
+   return 0;
 }
 
 int split(struct vm_area_struct * area, unsigned long addr)
