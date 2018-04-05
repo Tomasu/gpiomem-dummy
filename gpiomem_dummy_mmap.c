@@ -175,7 +175,7 @@ int mmap_mkwrite(struct vm_fault *vmf)
 
    printk(KERN_DEBUG LOG_PREFIX "page_mkwrite!\n");
    vma->vm_flags |= VM_WRITE;
-   vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
+   //vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 
    lock_page(vmf->page);
    set_page_dirty(vmf->page);
