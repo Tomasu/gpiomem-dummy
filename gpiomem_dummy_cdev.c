@@ -197,6 +197,9 @@ int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
    struct page *page = alloc_page(GFP_USER | __GFP_ZERO);
    check_error(page, "failed to allocate page");
 
+   unsigned long *pdata = (unsigned long*)page_to_virt(page);
+   memset(pdata, 0, PAGE_SIZE);
+
    pr_info("set_page_ro");
    error_ret = gd_cdev_set_page_ro(page);
    check_val_cleanup(error_ret, "failed to set page ro");

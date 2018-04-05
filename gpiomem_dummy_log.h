@@ -1,7 +1,8 @@
 #ifndef GPIOMEM_DUMMY_LOG_H_GUARD
 #define GPIOMEM_DUMMY_LOG_H_GUARD
 
-#define LOG_STRINGIFY__(arg) #arg
+#define LOG_STRINGIFY___(arg) #arg
+#define LOG_STRINGIFY__(arg) LOG_STRINGIFY___(arg)
 #define LOG_STRINGIFY_(arg) LOG_STRINGIFY__(arg)
 
 #ifdef pr_fmt
