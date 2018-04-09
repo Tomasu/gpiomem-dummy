@@ -1,7 +1,5 @@
 #include "gpiomem_dummy_probe.h"
 
-#define LOG_PREFIX LOG_PREFIX_ "probe: "
-
 #include <asm/insn.h>
 #include "inat.c"
 #include "insn.c"
@@ -18,6 +16,8 @@
 #include <asm/mmu_context.h>
 
 #include "gpiomem_dummy.h"
+
+#define LOG_PREFIX LOG_PREFIX_ "probe: "
 
 static int gd_up_handler(struct uprobe_consumer *self, struct pt_regs *regs);
 
@@ -76,7 +76,7 @@ int gd_register_probe(struct task_struct *task, struct vm_area_struct *vma)
    upret = uprobe_register(probe->inode, probe->ip, &gd_uprobe_consumer);
    if (upret != 0)
    {
-      pr_err("failed to register uprobe\n");
+      pr_err("failed to register uprobe: %d\n", upret);
       return -ENOMEM;
    }
 
