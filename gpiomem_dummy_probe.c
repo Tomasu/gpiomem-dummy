@@ -4,7 +4,6 @@
 #include "inat.c"
 #include "insn.c"
 
-#include <asm/insn-eval.h>
 #include <linux/ptrace.h>
 #include <asm/ptrace.h>
 #include <linux/uprobes.h>
@@ -26,6 +25,7 @@ static struct uprobe_consumer gd_uprobe_consumer =
 };
 
 static int get_next_ip(struct task_struct *task);
+unsigned long insn_get_seg_base(struct pt_regs *regs, int seg_reg_idx);
 
 void gd_add_probe(struct gpiomem_dummy *gd, struct gd_probe_info *task)
 {
@@ -156,6 +156,8 @@ static int gd_up_handler(struct uprobe_consumer *self, struct pt_regs *regs)
    */
 
    gd_set_page_ro(gd->page);
+
+   return 0;
 }
 
 
