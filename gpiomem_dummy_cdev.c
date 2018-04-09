@@ -15,151 +15,12 @@
 #include "gpiomem_dummy_mmap.h"
 #include <linux/mman.h>
 
-#define check_error(thing, fmt, ...) do { \
-   typeof(thing) thing_copy_ = (thing); \
-   if(!thing_copy_ || IS_ERR(thing_copy_)) \
-   { \
-      pr_err("check failed: " #thing " != NULL || IS_ERR(" #thing ")"); \
-      pr_err(fmt, ##__VA_ARGS__); \
-      return PTR_ERR(thing_copy_); \
-   } \
-} while(0)
-
-#define check_error_cleanup(thing, fmt, ...) do { \
-   typeof(thing) thing_copy_ = (thing); \
-   if(!thing_copy_ || IS_ERR(thing_copy_)) \
-   { \
-      pr_err("check failed: " #thing " != NULL || IS_ERR(" #thing ")"); \
-      pr_err(fmt, ##__VA_ARGS__); \
-      error_ret = PTR_ERR(thing_copy_); \
-      goto err_cleanup; \
-   } \
-} while(0)
-
-#define check_state_cleanup(val, errcode, fmt, ...) do { \
-   typeof(val) val_copy_ = (val); \
-   if(val_copy_) \
-   { \
-      break; \
-   } \
-   \
-   pr_err("check failed: " #val); \
-   pr_err(fmt, ##__VA_ARGS__); \
-   error_ret = errcode; \
-   goto err_cleanup; \
-} while(0)
-
-#define check_val_cleanup(val, fmt, ...) do { \
-   typeof(val) val_copy_ = (val); \
-   if(val_copy_ == 0) \
-   { \
-      break; \
-   } \
-   \
-   pr_err("check failed: " #val " == 0"); \
-   pr_err(fmt, ##__VA_ARGS__); \
-   error_ret = val_copy_; \
-   goto err_cleanup; \
-} while(0)
-
-static int gd_cdev_set_page_ro(struct page *page)
-{
-   pgd_t *pgd;
-   p4d_t *p4d;
-   pud_t *pud;
-   pmd_t *pmd;
-   pte_t *pte;
-   pte_t tmp_pte;
-
-   unsigned long addr = 0;
-
-   pr_info("check args");
-
-   check_error(page, "invalid page");
-   check_error(current, "no current task_struct");
-   check_error(current->mm, "no mm struct");
-
-   pr_info("page_to_pfn");
-   addr = (unsigned long)page_to_virt(page);
-   check_error((void*)addr, "invalid pfn");
-
-   pr_info("pgd_offset");
-   pgd = pgd_offset(current->mm, addr);
-   if (pgd_none(*pgd))
-   {
-      pgd_ERROR(*pgd);
-      return -ENOMEM;
-   }
-
-   pr_info("p4d_offset");
-   p4d = p4d_offset(pgd, addr);
-   if (p4d_none(*p4d))
-   {
-      p4d_ERROR(*p4d);
-      return -ENOMEM;
-   }
-
-   pr_info("pud_offset");
-   pud = pud_offset(p4d, addr);
-   if (pud_none(*pud))
-   {
-      pud_ERROR(*pud);
-      return -ENOMEM;
-   }
-
-   pr_info("pmd_offset");
-   pmd = pmd_offset(pud, addr);
-   if (pmd_none(*pmd))
-   {
-      pmd_ERROR(*pmd);
-      return -ENOMEM;
-   }
-
-   pr_info("pte_offset_map");
-   pte = pte_offset_map(pmd, addr);
-   if (pte_none(*pte))
-   {
-      pte_ERROR(*pte);
-      return -ENOMEM;
-   }
-
-   tmp_pte = *pte;
-
-   pr_info("set pte");
-   set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_RW | _PAGE_PRESENT));
-
-   tmp_pte = *pte;
-   set_pte(pte, pte_set_flags(tmp_pte, _PAGE_PROTNONE | _PAGE_ACCESSED));
-
-   pr_info("ret");
-   return 0;
-}
-
 static int gd_cdev_open(struct inode *inodep, struct file *filep);
 static int gd_cdev_mmap(struct file* file, struct vm_area_struct* vma);
 static int gd_cdev_release(struct inode *inodep, struct file *filep);
 
 static ssize_t gd_cdev_read(struct file *, char __user *, size_t, loff_t *);
 static ssize_t gd_cdev_write(struct file *, const char __user *, size_t, loff_t *);
-
-static int gd_cdev_writepage(struct page *page, struct writeback_control *wbc);
-static int gd_cdev_readpage(struct file *, struct page *);
-
-/* Write back some dirty pages from this mapping. */
-static int gd_cdev_writepages(struct address_space *, struct writeback_control *);
-
-/* Set a page dirty.  Return true if this dirtied it */
-static int gd_cdev_set_page_dirty(struct page *page);
-
-static int gd_cdev_readpages(struct file *filp, struct address_space *mapping,
-                   struct list_head *pages, unsigned nr_pages);
-
-static int gd_cdev_write_begin(struct file *, struct address_space *mapping,
-                     loff_t pos, unsigned len, unsigned flags,
-                     struct page **pagep, void **fsdata);
-static int gd_cdev_write_end(struct file *, struct address_space *mapping,
-                   loff_t pos, unsigned len, unsigned copied,
-                   struct page *page, void *fsdata);
 
 /** @brief Devices are represented as file structure in the kernel. The file_operations structure from
  *  /linux/fs.h lists the callback functions that you wish to associated with your file operations
@@ -176,21 +37,8 @@ static struct file_operations gd_cdev_fops =
    .write = gd_cdev_write,
 };
 
-struct address_space_operations gd_cdev_aops =
-{
-   .writepage = gd_cdev_writepage,
-   .readpage = gd_cdev_readpage,
-   .writepages = gd_cdev_writepages,
-   .set_page_dirty = gd_cdev_set_page_dirty,
-   .readpages = gd_cdev_readpages,
-   .write_begin = gd_cdev_write_begin,
-   .write_end = gd_cdev_write_end
-};
-
 int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
 {
-   struct page *page = NULL;
-   unsigned long *pdata = NULL;
    int cdev_major = -1;
    struct cdev *cdevp = NULL;
    struct class *clss = NULL;
@@ -203,17 +51,6 @@ int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
    check_error(cdev, "Null cdev?");
 
    memset(cdev, 0, sizeof(*cdev));
-
-   pr_info("alloc page");
-   page = alloc_page(GFP_USER | __GFP_ZERO);
-   check_error(page, "failed to allocate page");
-
-   pdata = (unsigned long*)page_to_virt(page);
-   memset(pdata, 0, PAGE_SIZE);
-
-   pr_info("set_page_ro");
-   error_ret = gd_cdev_set_page_ro(page);
-   check_val_cleanup(error_ret, "failed to set page ro");
 
    pr_info("register chrdev");
    // Try to dynamically allocate a major number for the device -- more difficult but worth it
@@ -243,7 +80,6 @@ int gd_cdev_init(struct gpiomem_dummy_cdev *cdev)
 
    pr_info("created chardev");
 
-   cdev->page = page;
    cdev->major_number = cdev_major;
    cdev->dev_id = dev_id;
    cdev->clss = clss;
@@ -273,10 +109,6 @@ err_cleanup:
       unregister_chrdev(cdev_major, DEVICE_NAME);
    }
 
-   if(page && !IS_ERR(page))
-   {
-      __free_page(page);
-   }
 
    return error_ret;
 }
@@ -304,12 +136,6 @@ void gd_cdev_destroy(struct gpiomem_dummy_cdev *cdev)
       cdev->dev_id = 0;
       cdev->major_number = 0;
    }
-
-   if(cdev->page && !IS_ERR(cdev->page))
-   {
-      __free_page(cdev->page);
-      cdev->page = NULL;
-   }
 }
 
 inline static struct gpiomem_dummy_cdev *inode_to_cdev(struct inode *ip)
@@ -317,7 +143,7 @@ inline static struct gpiomem_dummy_cdev *inode_to_cdev(struct inode *ip)
    return container_of(ip->i_cdev, struct gpiomem_dummy_cdev, cdev);
 }
 
-inline static struct gpiomem_dummy_cdev *file_to_cdev(struct file *fp)
+inline static struct gpiomem_dummy *file_to_gd(struct file *fp)
 {
    return fp->private_data;
 }
@@ -336,7 +162,7 @@ static int gd_cdev_open(struct inode *inodep, struct file *filep)
       return -ENODEV;
    }
 
-   filep->private_data = cdev;
+   filep->private_data = gd_cdev_get_dummy(cdev);
 
    cdev->times_opened++;
 
@@ -349,8 +175,7 @@ static int gd_cdev_mmap(struct file* fp, struct vm_area_struct* vma)
 {
    unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
    unsigned long size = vma->vm_end - vma->vm_start;
-   struct gpiomem_dummy_cdev *cdev = NULL;
-   struct page *page = NULL;
+   struct gpiomem_dummy *gd = NULL;
 
    pr_info("mmap request!");
 
@@ -378,18 +203,14 @@ static int gd_cdev_mmap(struct file* fp, struct vm_area_struct* vma)
       return(-EINVAL);
    }
 
-   cdev = file_to_cdev(fp);
-   if (!cdev)
+   gd = file_to_gd(fp);
+   if (!gd)
    {
       pr_err("failed to get cdev!?");
       return -ENODEV;
    }
 
-   page = cdev->page;
-
-   vma->vm_private_data = cdev;
-
-   vma->vm_file->f_mapping->a_ops = &gd_cdev_aops;
+   vma->vm_private_data = gd;
 
    vma->vm_ops = &gpiomem_dummy_mmap_vmops;
 
@@ -424,70 +245,4 @@ static ssize_t gd_cdev_write(struct file *filp, const char __user *data, size_t 
 {
    pr_info("write!");
    return len;
-}
-
-int gd_cdev_writepage(struct page *page, struct writeback_control *wbc)
-{
-   pr_info("writepage");
-   return 0;
-}
-
-int gd_cdev_readpage(struct file *fp, struct page *pg)
-{
-   pr_info("readpage");
-   return 0;
-}
-
-/* Write back some dirty pages from this mapping. */
-int gd_cdev_writepages(struct address_space *as, struct writeback_control *wbc)
-{
-   pr_info("writepages");
-   return 0;
-}
-
-//[31111.087184] BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
-//[31111.088182] IP: vmacache_find+0x23/0xa0
-
-/* Set a page dirty.  Return true if this dirtied it */
-int gd_cdev_set_page_dirty(struct page *page)
-{
-   int i = 0;
-   int num = 0;
-   char *data = page_to_virt(page);
-
-   //unmap_mapping_range(page->mapping, 0, PAGE_SIZE, 1);
-
-   for(i = 0; i < PAGE_SIZE; i++)
-   {
-      if(data[i]) num++;
-      //data[i] = 0;
-   }
-
-   pr_info("changes=%d", num);
-   //page->mapping
-
-   return !num;
-}
-
-int gd_cdev_readpages(struct file *filp, struct address_space *mapping,
-                 struct list_head *pages, unsigned nr_pages)
-{
-   pr_info("readpages");
-   return 0;
-}
-
-int gd_cdev_write_begin(struct file *filp, struct address_space *mapping,
-                   loff_t pos, unsigned len, unsigned flags,
-                   struct page **pagep, void **fsdata)
-{
-   pr_info("write_begin");
-   return 0;
-}
-
-int gd_cdev_write_end(struct file *filp, struct address_space *mapping,
-                 loff_t pos, unsigned len, unsigned copied,
-                 struct page *page, void *fsdata)
-{
-   pr_info("write_end");
-   return 0;
 }

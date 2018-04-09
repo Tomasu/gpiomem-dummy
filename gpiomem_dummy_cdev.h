@@ -13,10 +13,11 @@ struct gpiomem_dummy_cdev
    int major_number;
    int dev_id;
    int times_opened;
-   struct page *page;
+
    /* just so we can have the char device auto create in /dev ... sigh */
    struct class *clss;
    struct device *dev;
+
 };
 
 extern int gd_cdev_init(struct gpiomem_dummy_cdev *cdev);

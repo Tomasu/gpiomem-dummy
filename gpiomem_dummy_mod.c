@@ -26,7 +26,7 @@
 #include <linux/platform_device.h>
 
 #ifdef MODVERSIONS
-#  include <linux/modversions.h>
+#  include <linux/modvresions.h>
 #endif
 
 #include "gpiomem_dummy_procfs.h"
@@ -42,26 +42,11 @@ MODULE_VERSION("0.1");            ///< A version number to inform users
 
 static struct gpiomem_dummy *dummy = NULL;
 
-struct gpiomem_dummy *dummy_get()
+struct gpiomem_dummy *gd_get()
 {
-   if(!dummy || !dummy->initialized)
-   {
-      printk(KERN_ERR LOG_PREFIX "driver not initialized\n");
-      return NULL;
-   }
-
    return dummy;
 }
 
-void *dummy_get_mem_ptr()
-{
-   if(!dummy || !dummy->initialized)
-   {
-      return NULL;
-   }
-
-   return dummy->kmalloc_ptr;
-}
 
 /** @brief The LKM initialization function
  *  The static keyword restricts the visibility of the function to within this C file. The __init
@@ -73,6 +58,7 @@ static int __init gpiomem_init(void)
 {
    int error_ret = 0;
    struct gpiomem_dummy *new_dummy = NULL;
+   unsigned long *pdata = NULL;
 
    if(dummy)
    {
@@ -103,18 +89,16 @@ static int __init gpiomem_init(void)
 
    printk(KERN_INFO LOG_PREFIX "Initializing the gpiomem-dummy LKM\n");
 
+   pr_info("alloc page");
    new_dummy->page = alloc_page(GFP_USER | __GFP_ZERO);
+   check_error(new_dummy->page, "failed to allocate page");
 
-   new_dummy->kmalloc_ptr = kzalloc(KALLOC_MEM_SIZE, GFP_KERNEL);
-   if(!new_dummy->kmalloc_ptr)
-   {
-      printk(KERN_ALERT LOG_PREFIX "failed to allocate memory\n");
+   pdata = (unsigned long*)page_to_virt(new_dummy->page);
+   memset(pdata, 0, PAGE_SIZE);
 
-      error_ret = -ENOMEM;
-      goto err_cleanup;
-   }
-
-   new_dummy->kmalloc_area = new_dummy->kmalloc_ptr;
+   pr_info("set_page_ro");
+   error_ret = gd_set_page_ro(new_dummy->page);
+   check_val_cleanup(error_ret, "failed to set page ro");
 
    error_ret = gd_cdev_init(&(new_dummy->cdev));
    if(error_ret != 0)
@@ -124,6 +108,8 @@ static int __init gpiomem_init(void)
    }
 
    //new_dummy->page->mapping->a_ops = &cdev_aops;
+
+   INIT_LIST_HEAD_RCU(&new_dummy->probe_list);
 
    new_dummy->initialized = 1;
 
@@ -139,13 +125,6 @@ err_cleanup:
    {
       __free_pages(new_dummy->page, 0);
       new_dummy->page = NULL;
-   }
-
-   if(new_dummy->kmalloc_ptr)
-   {
-      kfree(new_dummy->kmalloc_ptr);
-      new_dummy->kmalloc_ptr = NULL;
-      new_dummy->kmalloc_area = NULL;
    }
 
    gpiomem_dummy_procfs_destroy(&new_dummy->proc);
@@ -174,13 +153,6 @@ static void __exit gpiomem_exit(void)
    gpiomem_dummy_procfs_destroy(&dummy->proc);
    gd_cdev_destroy(&dummy->cdev);
 
-   if(dummy->kmalloc_ptr)
-   {
-      kfree(dummy->kmalloc_ptr); // free our memory
-      dummy->kmalloc_ptr = NULL;
-      dummy->kmalloc_area = NULL;
-   }
-
    if(dummy->page)
    {
       __free_pages(dummy->page, 0);
@@ -192,6 +164,126 @@ static void __exit gpiomem_exit(void)
    dummy = NULL;
 
    printk(KERN_INFO LOG_PREFIX "Goodbye from the LKM!\n");
+}
+
+static pte_t *get_pte(struct page *page)
+{
+   pgd_t *pgd;
+   p4d_t *p4d;
+   pud_t *pud;
+   pmd_t *pmd;
+   pte_t *pte;
+   pte_t tmp_pte;
+
+   unsigned long addr = 0;
+
+   pr_info("check args");
+
+   if(!page)
+   {
+      pr_err("invalid page");
+      return NULL;
+   }
+
+   if(!current)
+   {
+      pr_err("no current task_struct");
+      return NULL;
+   }
+
+   if(!current->mm)
+   {
+      pr_err("no mm struct");
+      return NULL;
+   }
+
+   pr_info("page_to_virt");
+
+   addr = (unsigned long)page_to_virt(page);
+   check_error((void*)addr, "invalid pfn");
+
+   pr_info("pgd_offset");
+   pgd = pgd_offset(current->mm, addr);
+   if (pgd_none(*pgd))
+   {
+      pgd_ERROR(*pgd);
+      return NULL;
+   }
+
+   pr_info("p4d_offset");
+   p4d = p4d_offset(pgd, addr);
+   if (p4d_none(*p4d))
+   {
+      p4d_ERROR(*p4d);
+      return NULL;
+   }
+
+   pr_info("pud_offset");
+   pud = pud_offset(p4d, addr);
+   if (pud_none(*pud))
+   {
+      pud_ERROR(*pud);
+      return NULL;
+   }
+
+   pr_info("pmd_offset");
+   pmd = pmd_offset(pud, addr);
+   if (pmd_none(*pmd))
+   {
+      pmd_ERROR(*pmd);
+      return NULL;
+   }
+
+   pr_info("pte_offset_map");
+   pte = pte_offset_map(pmd, addr);
+   if (pte_none(*pte))
+   {
+      pte_ERROR(*pte);
+      return NULL;
+   }
+
+   return pte;
+}
+
+int gd_set_page_rw(struct page *page)
+{
+   pte_t *pte = get_pte(page);
+   pte_t tmp_pte;
+
+   if(!pte)
+   {
+      return -1;
+   }
+
+   tmp_pte = *pte;
+
+   pr_info("set pte");
+   set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_RW | _PAGE_PRESENT));
+
+   pr_info("ret");
+   return 0;
+}
+
+int gd_set_page_ro(struct page *page)
+{
+   pte_t *pte = get_pte(page);
+   pte_t tmp_pte;
+
+   if(!pte)
+   {
+      return -1;
+   }
+
+   tmp_pte = *pte;
+
+   pr_info("set pte");
+   set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_RW | _PAGE_PRESENT));
+
+   //tmp_pte = *pte;
+   //set_pte(pte, pte_set_flags(tmp_pte, _PAGE_PROTNONE | _PAGE_ACCESSED));
+
+   pr_info("ret");
+   return 0;
 }
 
 /** @brief A module must use the module_init() module_exit() macros from linux/init.h, which

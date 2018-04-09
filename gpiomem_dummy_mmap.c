@@ -1,22 +1,36 @@
 #include "gpiomem_dummy_mmap.h"
 
+#include <linux/mm_types.h>
 #include <linux/mm.h>
 #include <linux/pagemap.h>
+
 #include "gpiomem_dummy.h"
+#include "gpiomem_dummy_probe.h"
 
 #define LOG_PREFIX LOG_PREFIX_ "mmap: "
 
 /* memory handler functions */
 
+
 static void mmap_open(struct vm_area_struct* vma)
 {
-   // do nothing
+   struct mm_struct *mm = NULL;
+
    printk(KERN_DEBUG LOG_PREFIX "mmap_open\n");
 
+   mm = vma->vm_mm;
+   if (!mm) {
+      pr_err("vma vm_mm is missing :(");
+      return;
+   }
+
    //vma->vm_flags = (vma->vm_flags | VM_DONTEXPAND | VM_DONTCOPY | VM_DONTDUMP | VM_IO | VM_MAYREAD | VM_MIXEDMAP);
-   vma->vm_flags |= VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_SHARED | VM_LOCKED | VM_IO;// | VM_WRITE | VM_IO;
+   vma->vm_flags |= VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_SHARED | VM_LOCKED | VM_IO | VM_WRITE | VM_IO | VM_MIXEDMAP;
    vma->vm_flags &= ~(VM_MAYWRITE /*| VM_WRITE*/);
    //vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
+
+   //if (!vma->vm_mm->exe_file || !vma)
+   //uprobe_register(vma->vm_mm->exe_file->f_inode, 0, NULL);
 }
 
 static void mmap_close(struct vm_area_struct* vma)
@@ -25,113 +39,95 @@ static void mmap_close(struct vm_area_struct* vma)
    printk(KERN_DEBUG LOG_PREFIX "mmap_close\n");
 }
 
-static int clr_pte(struct vm_fault *vmf)
+static inline
+struct gpiomem_dummy *vmf_get_gd(struct vm_fault *vmf)
 {
-   return 0;
+   return vmf && vmf->vma ? vmf->vma->vm_private_data : NULL;
+}
+
+static inline
+struct page *vmf_get_page(struct vm_fault *vmf)
+{
+   struct gpiomem_dummy *gd = NULL;
+
+   if(vmf->page)
+   {
+      return vmf->page;
+   }
+
+   gd = vmf_get_gd(vmf);
+
+   return gd ? gd->page : NULL;
 }
 
 static int mmap_fault(struct vm_fault* vmf)
 {
    struct page *page = NULL;
    struct vm_area_struct *vma = vmf->vma;
-   unsigned long addr = 0;
-   pte_t tmp_pte;
-   pgd_t *pgd;
-   p4d_t *p4d;
-   pud_t *pud;
-   pmd_t *pmd;
-   pte_t *pte;
 
    printk(KERN_DEBUG LOG_PREFIX "fault: pgoff=0x%lx addr=0x%lx pte=%p\n", vmf->pgoff, vmf->address - vma->vm_start, vmf->pte);
 
-
-
    printk("fault: flags ");
    if(vmf->flags & FAULT_FLAG_INSTRUCTION)
-      printk("INST ");
+      printk(KERN_CONT "INST ");
    if(vmf->flags & FAULT_FLAG_KILLABLE)
-      printk("KILLABLE ");
+      printk(KERN_CONT "KILLABLE ");
    if(vmf->flags & FAULT_FLAG_MKWRITE)
-      printk("MKWRITE ");
+      printk(KERN_CONT "MKWRITE ");
    if(vmf->flags & FAULT_FLAG_REMOTE)
-      printk("REMOTE ");
+      printk(KERN_CONT "REMOTE ");
    if(vmf->flags & FAULT_FLAG_TRIED)
-      printk("TRIED ");
+      printk(KERN_CONT "TRIED ");
    if(vmf->flags & FAULT_FLAG_USER)
-      printk("USER ");
+      printk(KERN_CONT "USER ");
    if(vmf->flags & FAULT_FLAG_WRITE)
-      printk("WRITE ");
+      printk(KERN_CONT "WRITE ");
 
    printk("\n");
 
-   page = vmf->page;
-
-   if(!page)
+   if(vmf->pte)
    {
-      struct gpiomem_dummy_cdev *cdev = vmf->vma->vm_private_data;
-      if (!cdev)
-      {
-         pr_err("private data is null :(");
-         return VM_FAULT_SIGBUS;
-      }
-
-      page = cdev->page;
+      pr_info("we have a pte!");
    }
+   else
+   {
+      pr_info("we do not have a pte!");
+   }
+
+   page = vmf_get_page(vmf);
 
    if(!page || IS_ERR(page))
    {
-      printk(KERN_ERR LOG_PREFIX "unable to get mem pointer\n");
+      pr_err("unable to get mem pointer");
       return VM_FAULT_SIGBUS;
    }
 
    if(vma->vm_flags & VM_WRITE)
    {
-      printk(KERN_DEBUG LOG_PREFIX "vma is writeable\n");
+      pr_info("vma is writeable");
    }
    else {
-      printk(KERN_DEBUG LOG_PREFIX "vma is not writable\n");
+      pr_info("vma is not writable");
    }
 
-   if(vmf->flags & VM_WRITE || vmf->flags & FAULT_FLAG_WRITE)
+   if(vmf->flags & FAULT_FLAG_WRITE)
    {
-      printk(KERN_DEBUG LOG_PREFIX "write to page!\n");
+      pr_info("write to page");
    }
-
-   /*if(vmf->pgoff != BCM283X_GPIO_PGOFF)
-   {
-      printk(KERN_ERR LOG_PREFIX "attempt to access outside the gpio registers: pgoff:%lu gpio-pgoff:%lu", vmf->pgoff, BCM283X_GPIO_PGOFF);
-      return VM_FAULT_SIGBUS;
-   }*/
-
-   printk(KERN_DEBUG LOG_PREFIX "address=0x%lx\n", vmf->address - vma->vm_start);
-
-   //if(!(vmf->flags & FAULT_FLAG_WRITE))
-   //   vma->vm_flags &= ~VM_WRITE;
-
-   //vma->vm_flags &= ~VM_WRITE;
-   //vma->vm_flags = (vma->vm_flags | VM_MAYREAD) & ~(VM_WRITE);
-
-/*   addr = page_to_pfn(page) << PAGE_SHIFT;
-   pgd = pgd_offset(vma->vm_mm, addr);
-   p4d = p4d_offset(pgd, addr);
-   pud = pud_offset(p4d, addr);
-   pmd = pmd_offset(pud, addr);
-   pte = pte_offset_map(pmd, addr);*/
-
-//   tmp_pte = *pte;
-
-//   set_pte(pte, pte_clear_flags(tmp_pte, _PAGE_PRESENT));
- //  set_pte(pte, pte_set_flags(tmp_pte, _PAGE_PROTNONE));
-
-   vma->vm_flags |= VM_WRITE;
-   //vma->vm_flags &= ~VM_READ;
-
-   if (vmf->vma->vm_file)
-      page->mapping = vmf->vma->vm_file->f_mapping;
    else
-      printk(KERN_ERR "no mapping available\n");
+   {
+      pr_info("read from page");
+   }
 
-   //vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
+   // set page rw for now
+   gd_set_page_rw(page);
+
+   // register probe on /next/ instruction, then we'll mark page ro again after
+   if(gd_register_probe(current, vma) != 0)
+   {
+      pr_err("failed to register gd probe");
+      return VM_FAULT_ERROR;
+   }
 
    vmf->page = page;
    get_page(page);
@@ -207,6 +203,8 @@ int mmap_access(struct vm_area_struct *vma, unsigned long addr,
    printk(KERN_DEBUG LOG_PREFIX "access: addr=0x%lx len=%d write=%d\n", addr, len, write);
    return len;
 }
+
+
 
 struct vm_operations_struct gpiomem_dummy_mmap_vmops = {
    .open  = mmap_open,  /* mmap-open */
