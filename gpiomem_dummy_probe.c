@@ -1,5 +1,7 @@
 #include "gpiomem_dummy_probe.h"
 
+#define LOG_PREFIX LOG_PREFIX_ "probe: "
+
 #include <asm/insn.h>
 #include "inat.c"
 #include "insn.c"
