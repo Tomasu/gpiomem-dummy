@@ -46,6 +46,8 @@ int gd_pdrv_init(struct gd_pdev *pdev)
    int drv_ret = -1;
    int pdr = -1;
 
+   pdev->plat_dev = gd_pdev;
+
    pdr = platform_device_register(&pdev->plat_dev);
    if(pdr != 0)
    {
