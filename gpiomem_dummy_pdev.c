@@ -8,14 +8,17 @@
 
 static int pdrv_probe(struct platform_device *);
 static int pdrv_remove(struct platform_device *);
+static void pdrv_shutdown(struct platform_device *);
+static void pdrv_release(struct device *);
 
 struct platform_driver pdrv = {
    .driver = {
       .name = "gd-pdev",
-      .owner = THIS_MODULE
+      .owner = THIS_MODULE,
    },
    .probe = pdrv_probe,
-   .remove = pdrv_remove
+   .remove = pdrv_remove,
+   .shutdown = pdrv_shutdown
 };
 
 struct resource io_resource = {
@@ -28,7 +31,10 @@ struct platform_device gd_pdev = {
    .name = "gpiomem-pdev",
    .id = PLATFORM_DEVID_NONE,
    .num_resources = 1,
-   .resource = &io_resource
+   .resource = &io_resource,
+   .dev = {
+      .release = pdrv_release
+   }
 };
 
 struct gpiomem_dummy *gd_from_platdev(struct platform_device *platdev)
@@ -112,7 +118,17 @@ int pdrv_probe(struct platform_device *pdev)
 
 int pdrv_remove(struct platform_device *pdev)
 {
-   printk(KERN_DEBUG LOG_PREFIX "remove pdev!\n");
+   pr_info("remove pdev!");
 
    return 0;
+}
+
+void pdrv_shutdown(struct platform_device *pdev)
+{
+   pr_info("shutdown pdev!");
+}
+
+void pdrv_release(struct device *dev)
+{
+   pr_info("release dev!");
 }
