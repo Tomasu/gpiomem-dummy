@@ -1,12 +1,15 @@
 #ifndef GPIOMEM_DUMMY_PDEV_H_GUARD
 #define GPIOMEM_DUMMY_PDEV_H_GUARD
 
-struct gpiomem_dummy_pdev
+#include <linux/platform_device.h>
+
+struct gd_pdev
 {
-   // nada
+   struct platform_device plat_dev;
+   void __iomem *iomem;
 };
 
-int gpiomem_dummy_pdrv_init(struct gpiomem_dummy_pdev *pdev);
-void gpiomem_dummy_pdrv_exit(struct gpiomem_dummy_pdev *pdev);
+int gd_pdrv_init(struct gd_pdev *pdev);
+void gd_pdrv_exit(struct gd_pdev *pdev);
 
 #endif /* GPIOMEM_DUMMY_PDEV_H_GUARD */

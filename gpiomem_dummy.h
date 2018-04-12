@@ -28,6 +28,7 @@
 struct gpiomem_dummy
 {
    int initialized;
+   struct gd_pdev pdev;
    struct gpiomem_dummy_cdev cdev; // our char device state.
    struct gpiomem_dummy_procfs proc; // our proc device state;
 

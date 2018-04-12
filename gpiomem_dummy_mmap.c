@@ -123,11 +123,11 @@ static int mmap_fault(struct vm_fault* vmf)
    gd_set_page_rw(page);
 
    // register probe on /next/ instruction, then we'll mark page ro again after
-   if(gd_register_probe(current, vma) != 0)
+   /*if(gd_register_probe(current, vma) != 0)
    {
       pr_err("failed to register gd probe");
       return VM_FAULT_ERROR;
-   }
+   }*/
 
    vmf->page = page;
    get_page(page);
