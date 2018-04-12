@@ -28,7 +28,7 @@ struct resource io_resource = {
 };
 
 struct platform_device gd_pdev = {
-   .name = "gpiomem-pdev",
+   .name = "gd-pdev",
    .id = PLATFORM_DEVID_NONE,
    .num_resources = 1,
    .resource = &io_resource,
