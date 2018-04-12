@@ -3,6 +3,8 @@
 #include <linux/mm_types.h>
 #include <linux/mm.h>
 #include <linux/pagemap.h>
+#include <linux/perf_event.h>
+#include <linux/hw_breakpoint.h>
 
 #include "gpiomem_dummy.h"
 #include "gpiomem_dummy_probe.h"
@@ -60,10 +62,17 @@ struct page *vmf_get_page(struct vm_fault *vmf)
    return gd ? gd->page : NULL;
 }
 
+void hw_breakpoint_trigger(struct perf_event *event, struct perf_sample_data *data, struct pt_regs *regs)
+{
+   pr_info("hw hw_breakpoint!");
+   unregister_hw_breakpoint(event);
+}
+
 static int mmap_fault(struct vm_fault* vmf)
 {
    struct page *page = NULL;
    struct vm_area_struct *vma = vmf->vma;
+   struct perf_event_attr pe_attr;
 
    printk(KERN_DEBUG LOG_PREFIX "fault: pgoff=0x%lx addr=0x%lx pte=%p\n", vmf->pgoff, vmf->address - vma->vm_start, vmf->pte);
 
@@ -122,12 +131,18 @@ static int mmap_fault(struct vm_fault* vmf)
    // set page rw for now
    gd_set_page_rw(page);
 
+
+   //ptrace_breakpoint_init(&pe_attr);
+   //pe_attr.bp_addr =
+   //register_user_hw_breakpoint(&pe_attr, hw_breakpoint_trigger, NULL /* user data */, current);
+
+
    // register probe on /next/ instruction, then we'll mark page ro again after
-   /*if(gd_register_probe(current, vma) != 0)
+   if(gd_register_probe(current, vma) != 0)
    {
       pr_err("failed to register gd probe");
       return VM_FAULT_ERROR;
-   }*/
+   }
 
    vmf->page = page;
    get_page(page);

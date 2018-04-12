@@ -5,6 +5,7 @@
 #include <linux/sched.h>
 #include <linux/mm_types.h>
 #include <linux/fs.h>
+#include <linux/perf_event.h>
 
 struct gpiomem_dummy;
 struct gd_probe_info {
@@ -15,6 +16,7 @@ struct gd_probe_info {
    struct inode *inode;
    struct task_struct *task;
    struct vm_area_struct *vma; // ??
+   struct perf_event *perf_event;
 };
 
 struct gd_probe_info *gd_create_probe(struct task_struct *task, struct vm_area_struct *vma);
