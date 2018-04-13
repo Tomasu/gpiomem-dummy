@@ -134,9 +134,11 @@ static int get_next_ip(struct task_struct *task)
       return VM_FAULT_ERROR;
    }
 
-   ip = pt_regs->ip + insn.length;// - task->mm->start_code;
 
-   pr_info("ip=%lu insn.length=%hhu", ip, insn.length);
+   ip = (pt_regs->ip + insn.length) - task->mm->start_code;
+
+
+   pr_info("ip=%lu insn.length=%hhu start_code=%lu", ip, insn.length, task->mm->start_code);
 
    return ip;
 }
