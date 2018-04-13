@@ -146,9 +146,9 @@ static int mmap_fault(struct vm_fault* vmf)
 
    vmf->page = page;
    get_page(page);
-   //lock_page(page);
+   lock_page(page);
 
-   return 0;
+   return VM_FAULT_LOCKED;
 }
 
 int split(struct vm_area_struct * area, unsigned long addr)
