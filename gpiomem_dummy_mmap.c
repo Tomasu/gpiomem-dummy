@@ -27,7 +27,7 @@ static void mmap_open(struct vm_area_struct* vma)
    }
 
    //vma->vm_flags = (vma->vm_flags | VM_DONTEXPAND | VM_DONTCOPY | VM_DONTDUMP | VM_IO | VM_MAYREAD | VM_MIXEDMAP);
-   vma->vm_flags |= VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_SHARED | VM_LOCKED | VM_WRITE | VM_MIXEDMAP;
+   vma->vm_flags |= VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_SHARED | VM_LOCKED | VM_WRITE | VM_MIXEDMAP | VM_PFNMAP;
    //vma->vm_flags &= ~(VM_MAYWRITE /*| VM_WRITE*/);
    //vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 
@@ -65,7 +65,7 @@ struct page *vmf_get_page(struct vm_fault *vmf)
 void hw_breakpoint_trigger(struct perf_event *event, struct perf_sample_data *data, struct pt_regs *regs)
 {
    pr_info("hw hw_breakpoint!");
-   unregister_hw_breakpoint(event);
+   //unregister_hw_breakpoint(event);
 }
 
 static int mmap_fault(struct vm_fault* vmf)
@@ -137,7 +137,9 @@ static int mmap_fault(struct vm_fault* vmf)
    //pe_attr.bp_addr =
    //register_user_hw_breakpoint(&pe_attr, hw_breakpoint_trigger, NULL /* user data */, current);
 
-   insret = vm_insert_page(vma, vmf->address, page);
+   insret = vm_insert_pfn(vma, vmf->address, page_to_pfn(page));
+
+   //insret = vm_insert_page(vma, vmf->address, page);
    if (insret != 0)
    {
       pr_err("failed to insert page: %d", insret);
