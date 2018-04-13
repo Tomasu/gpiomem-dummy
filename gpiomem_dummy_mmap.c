@@ -28,7 +28,7 @@ static void mmap_open(struct vm_area_struct* vma)
 
    //vma->vm_flags = (vma->vm_flags | VM_DONTEXPAND | VM_DONTCOPY | VM_DONTDUMP | VM_IO | VM_MAYREAD | VM_MIXEDMAP);
    vma->vm_flags |= VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_SHARED |
-      VM_LOCKED | VM_WRITE | VM_MIXEDMAP | VM_PFNMAP;
+      VM_LOCKED | VM_WRITE | VM_PFNMAP;
    //vma->vm_flags &= ~(VM_MAYWRITE /*| VM_WRITE*/);
    vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 
