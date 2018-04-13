@@ -151,12 +151,12 @@ static int mmap_fault(struct vm_fault* vmf)
       return VM_FAULT_ERROR;
    }
 
-   vmf->page = page;
-   get_page(page);
+   //vmf->page = page;
+   //get_page(page);
    //lock_page(page);
 
    pr_info("mmap_fault done");
-   return 0;
+   return VM_FAULT_NOPAGE;
 }
 
 int split(struct vm_area_struct * area, unsigned long addr)
