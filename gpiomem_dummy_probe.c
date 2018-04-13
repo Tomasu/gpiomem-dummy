@@ -20,10 +20,13 @@
 #define LOG_PREFIX LOG_PREFIX_ "probe: "
 
 static int gd_up_handler(struct uprobe_consumer *self, struct pt_regs *regs);
-
+static bool gd_up_filter(struct uprobe_consumer *self,
+                        enum uprobe_filter_ctx ctx,
+                        struct mm_struct *mm);
 static struct uprobe_consumer gd_uprobe_consumer =
 {
-   .handler = gd_up_handler
+   .handler = gd_up_handler,
+   .filter = gd_up_filter
 };
 
 static int get_next_ip(struct task_struct *task);
@@ -174,6 +177,13 @@ static int gd_up_handler(struct uprobe_consumer *self, struct pt_regs *regs)
    return 0;
 }
 
+static bool gd_up_filter(struct uprobe_consumer *self,
+                 enum uprobe_filter_ctx ctx,
+                 struct mm_struct *mm)
+{
+   pr_info("up filter: ctx=%d", ctx);
+   return 1;
+}
 
 // dirty hack...
 
