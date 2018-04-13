@@ -77,9 +77,11 @@ int gd_register_probe(struct task_struct *task, struct vm_area_struct *vma)
    if (upret != 0)
    {
       pr_err("failed to register uprobe: %d\n", upret);
-      pr_err("ip=%lu, inode.i_bytes=%d", probe->ip, probe->inode->i_bytes);
+      pr_err("ip=%lx, inode.i_bytes=%d", probe->ip, probe->inode->i_bytes);
       return -ENOMEM;
    }
+
+   pr_info("uprobe_register done");
 
    gd_add_probe(gd_get_from_vma(vma), probe);
 
@@ -138,7 +140,7 @@ static int get_next_ip(struct task_struct *task)
    ip = (pt_regs->ip + insn.length) - task->mm->start_code;
 
 
-   pr_info("ip=%lu insn.length=%hhu start_code=%lu", ip, insn.length, task->mm->start_code);
+   pr_info("ip=%lx insn.length=%hhu start_code=%lx", ip, insn.length, task->mm->start_code);
 
    return ip;
 }
