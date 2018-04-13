@@ -97,9 +97,9 @@ static int __init gpiomem_init(void)
    pdata = (unsigned long*)page_to_virt(new_dummy->page);
    memset(pdata, 0, PAGE_SIZE);
 
-   pr_info("set_page_ro");
-   error_ret = gd_set_page_ro(new_dummy->page);
-   check_val_cleanup(error_ret, "failed to set page ro");
+   //pr_info("set_page_ro");
+   //error_ret = gd_set_page_ro(new_dummy->page);
+   //check_val_cleanup(error_ret, "failed to set page ro");
 
    error_ret = gd_cdev_init(&(new_dummy->cdev));
    if(error_ret != 0)

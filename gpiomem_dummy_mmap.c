@@ -27,8 +27,8 @@ static void mmap_open(struct vm_area_struct* vma)
    }
 
    //vma->vm_flags = (vma->vm_flags | VM_DONTEXPAND | VM_DONTCOPY | VM_DONTDUMP | VM_IO | VM_MAYREAD | VM_MIXEDMAP);
-   vma->vm_flags |= VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_SHARED | VM_LOCKED | VM_IO | VM_WRITE | VM_IO | VM_MIXEDMAP;
-   vma->vm_flags &= ~(VM_MAYWRITE /*| VM_WRITE*/);
+   vma->vm_flags |= VM_DONTCOPY | VM_DONTDUMP | VM_DONTEXPAND | VM_SHARED | VM_LOCKED | VM_WRITE;
+   //vma->vm_flags &= ~(VM_MAYWRITE /*| VM_WRITE*/);
    //vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 
    //if (!vma->vm_mm->exe_file || !vma)
@@ -92,7 +92,7 @@ static int mmap_fault(struct vm_fault* vmf)
    if(vmf->flags & FAULT_FLAG_WRITE)
       printk(KERN_CONT "WRITE ");
 
-   printk("\n");
+   printk("");
 
    if(vmf->pte)
    {
@@ -129,7 +129,7 @@ static int mmap_fault(struct vm_fault* vmf)
    }
 
    // set page rw for now
-   gd_set_page_rw(page);
+   // gd_set_page_rw(page);
 
 
    //ptrace_breakpoint_init(&pe_attr);
@@ -192,11 +192,11 @@ int mmap_mkwrite(struct vm_fault *vmf)
    struct vm_area_struct *vma = vmf->vma;
 
    printk(KERN_DEBUG LOG_PREFIX "page_mkwrite!\n");
-   vma->vm_flags |= VM_WRITE;
-   vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
+   //vma->vm_flags |= VM_WRITE;
+   //vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
 
    lock_page(vmf->page);
-   set_page_dirty(vmf->page);
+   //set_page_dirty(vmf->page);
 
    return VM_FAULT_LOCKED;
 }
