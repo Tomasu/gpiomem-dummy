@@ -44,7 +44,7 @@ struct gd_probe_info *gd_create_probe(struct task_struct *task, struct vm_area_s
    struct file *task_file = NULL;
    struct gd_probe_info *info = NULL;
 
-   task_file = get_task_exe_file(task);
+   task_file = task->mm->exe_file;
    if(!task_file || !task_file->f_inode)
    {
       pr_err("task is missing an associated file?!");
@@ -77,6 +77,7 @@ int gd_register_probe(struct task_struct *task, struct vm_area_struct *vma)
    if (upret != 0)
    {
       pr_err("failed to register uprobe: %d\n", upret);
+      pr_err("ip=%lu, inode.i_bytes=%d", probe->ip, probe->inode->i_bytes);
       return -ENOMEM;
    }
 
@@ -92,6 +93,7 @@ static int get_next_ip(struct task_struct *task)
    char insn_buff[32];
    unsigned long seg_base = 0;
    int not_copied, nr_copied;
+   unsigned long ip = 0;
 
    pt_regs = task_pt_regs(task);
    /*
@@ -132,12 +134,18 @@ static int get_next_ip(struct task_struct *task)
       return VM_FAULT_ERROR;
    }
 
-   return pt_regs->ip + insn.length;
+   ip = pt_regs->ip + insn.length;// - task->mm->start_code;
+
+   pr_info("ip=%lu insn.length=%hhu", ip, insn.length);
+
+   return ip;
 }
 
 static int gd_up_handler(struct uprobe_consumer *self, struct pt_regs *regs)
 {
    struct gpiomem_dummy *gd = gd_get();
+
+   pr_info("in uprobe handler!");
 
    if(!gd)
    {
